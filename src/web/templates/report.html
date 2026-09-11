@@ -1,0 +1,73 @@
+{% extends "base.html" %}
+{% block title %}Compliance Report — EU AI Act Compliance{% endblock %}
+{% block content %}
+<h2>Compliance report</h2>
+<p><strong>Assessment ID:</strong> <code>{{ assessment_id }}</code></p>
+<p><strong>System:</strong> {{ report.facts.system_description }}</p>
+<p><strong>Intended purpose:</strong> {{ report.facts.intended_purpose }}</p>
+<p><strong>Assessed as of:</strong> {{ report.as_of }}</p>
+
+{% if file_errors %}
+<h3>File upload errors</h3>
+{% for err in file_errors %}
+<div class="flag">{{ err }} — treated as no evidence supplied for this obligation.</div>
+{% endfor %}
+{% endif %}
+
+<h3>Classification</h3>
+<table>
+  <tr><th>Category</th><th>State</th><th>Citations</th></tr>
+  {% for a in report.classification.assessments %}
+  <tr>
+    <td>{{ a.category.value }}</td>
+    <td class="state-{{ a.state.value }}">{{ a.state.value }}</td>
+    <td>{% for c in a.cited_requirements %}{{ c.requirement_key }}<br>{% endfor %}</td>
+  </tr>
+  {% endfor %}
+</table>
+
+<h3>Obligations and evidence status ({{ report.obligations|length }})</h3>
+{% if report.obligations %}
+<table>
+  <tr><th>Obligation</th><th>Evidence status</th><th>Rationale</th></tr>
+  {% for ea in report.evidence_assessments %}
+  <tr>
+    <td>{{ ea.requirement_key }}</td>
+    <td class="status-{{ ea.status.value }}">{{ ea.status.value }}</td>
+    <td>{{ ea.rationale }}</td>
+  </tr>
+  {% endfor %}
+</table>
+{% else %}
+<p>No obligations apply.</p>
+{% endif %}
+
+<h3>Gaps ({{ report.gaps|length }})</h3>
+{% if report.gaps %}
+<ul>
+  {% for g in report.gaps %}
+  <li><strong>{{ g.requirement_key }}</strong> ({{ g.citation }}) — <span class="status-{{ g.evidence_status.value }}">{{ g.evidence_status.value }}</span>: {{ g.rationale }}</li>
+  {% endfor %}
+</ul>
+{% else %}
+<p>No gaps identified.</p>
+{% endif %}
+
+<h3>Recommended actions</h3>
+{% if report.recommended_actions %}
+<ul>{% for action in report.recommended_actions %}<li>{{ action }}</li>{% endfor %}</ul>
+{% else %}
+<p>None.</p>
+{% endif %}
+
+<h3>Human review</h3>
+{% if report.requires_human_review %}
+  {% for flag in report.review_flags %}
+  <div class="flag"><strong>{{ flag.trigger.value }}</strong>: {{ flag.detail }}</div>
+  {% endfor %}
+{% else %}
+<p>No review flags raised.</p>
+{% endif %}
+
+<p><a href="/">Start a new assessment</a></p>
+{% endblock %}

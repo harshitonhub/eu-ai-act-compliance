@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+{% block title %}Classification Result — EU AI Act Compliance{% endblock %}
+{% block content %}
+<h2>Classification</h2>
+<table>
+  <tr><th>Category</th><th>State</th><th>Citations</th><th>Rationale</th></tr>
+  {% for a in classification.assessments %}
+  <tr>
+    <td>{{ a.category.value }}</td>
+    <td class="state-{{ a.state.value }}">{{ a.state.value }}</td>
+    <td>{% for c in a.cited_requirements %}<span class="citation">{{ c.requirement_key }} ({{ c.citation }})</span><br>{% endfor %}</td>
+    <td>{{ a.rationale }}</td>
+  </tr>
+  {% endfor %}
+</table>
+
+{% if obligations %}
+<h2>Applicable obligations ({{ obligations|length }})</h2>
+<p>Provide evidence for each obligation below (paste text or upload a file — a file
+takes precedence if both are given). Leave blank if none is available yet. Accepted
+file types: .txt, .pdf, .docx, up to 5&nbsp;MB.</p>
+
+<form method="post" action="/report" enctype="multipart/form-data">
+  <input type="hidden" name="facts_json" value='{{ facts_json }}'>
+  <input type="hidden" name="classification_json" value='{{ classification_json }}'>
+  <input type="hidden" name="classification_llm_calls_json" value='{{ classification_llm_calls_json }}'>
+  <input type="hidden" name="as_of" value="{{ as_of }}">
+
+  {% for o in obligations %}
+  <div class="obligation-block">
+    <strong>{{ o.requirement_key }}</strong> <span class="citation">({{ o.citation }})</span>
+    <p>{{ o.summary }}</p>
+    <label for="evidence__{{ o.requirement_key }}">Evidence (text)</label>
+    <textarea id="evidence__{{ o.requirement_key }}" name="evidence__{{ o.requirement_key }}"></textarea>
+    <label for="evidence_file__{{ o.requirement_key }}">Evidence (file)</label>
+    <input type="file" id="evidence_file__{{ o.requirement_key }}" name="evidence_file__{{ o.requirement_key }}" accept=".txt,.pdf,.docx">
+  </div>
+  {% endfor %}
+
+  <button type="submit">Assess evidence and generate report</button>
+</form>
+{% else %}
+<p>No obligations triggered by this classification.</p>
+<form method="post" action="/report">
+  <input type="hidden" name="facts_json" value='{{ facts_json }}'>
+  <input type="hidden" name="classification_json" value='{{ classification_json }}'>
+  <input type="hidden" name="classification_llm_calls_json" value='{{ classification_llm_calls_json }}'>
+  <input type="hidden" name="as_of" value="{{ as_of }}">
+  <button type="submit">Generate report</button>
+</form>
+{% endif %}
+{% endblock %}

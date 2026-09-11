@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% block title %}New Assessment — EU AI Act Compliance{% endblock %}
+{% block content %}
+<p>Describe the AI system. Assessed against the ingested EU AI Act seed corpus
+(Article 5, Article 6, Annex III, Articles 9-15 — see <code>docs/legal-methodology.md</code>).</p>
+
+{% if error %}<p class="flag">{{ error }}</p>{% endif %}
+
+<form method="post" action="/assess">
+  <label for="system_description">System description</label>
+  <textarea id="system_description" name="system_description" required>{{ system_description or "" }}</textarea>
+
+  <label for="intended_purpose">Intended purpose</label>
+  <textarea id="intended_purpose" name="intended_purpose" required>{{ intended_purpose or "" }}</textarea>
+
+  <label for="actor_role">Actor role</label>
+  <select id="actor_role" name="actor_role">
+    <option value="">(not specified)</option>
+    {% for role in actor_roles %}
+    <option value="{{ role }}" {% if role == actor_role %}selected{% endif %}>{{ role }}</option>
+    {% endfor %}
+  </select>
+
+  <label for="sector">Sector (optional)</label>
+  <input id="sector" name="sector" value="{{ sector or '' }}">
+
+  <label for="as_of">Assessment date</label>
+  <input id="as_of" name="as_of" type="date" value="{{ as_of }}" required>
+
+  <button type="submit">Classify</button>
+</form>
+{% endblock %}

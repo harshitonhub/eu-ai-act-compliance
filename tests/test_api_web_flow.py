@@ -1,0 +1,298 @@
+"""Phase 5 DoD: a user can submit a system description + evidence through the web form
+and receive a report with citations, gaps, and review flags, end-to-end.
+
+Drives the real FastAPI app via TestClient, overriding only the DB session (in-memory,
+seeded) and the LLM client (fake, programmed) -- the same override mechanism a real
+browser session would never see; everything else (routing, templates, hidden-field
+round-tripping, form parsing) is exercised exactly as production would run it.
+"""
+
+import html
+import re
+
+import pytest
+from fastapi.testclient import TestClient
+from sqlalchemy import create_engine
+from sqlalchemy.orm import Session
+from sqlalchemy.pool import StaticPool
+
+from src.api.dependencies import get_llm_client
+from src.api.main import app
+from src.legal.ingest import ingest_seed
+from src.llm.fake_client import FakeCompletionProvider
+from src.llm.interface import LLMClient
+from src.observability.assessment_log import reconstruct_assessment
+from src.persistence.db import get_session
+from src.persistence.models import Base
+from schemas.classification import ClassificationResult
+
+HIGH_RISK_CLASSIFICATION_RESPONSES = [
+    '{"category": "prohibited_practices", "state": "NO", "cited_requirements": [], '
+    '"rationale": "No prohibited practice indicators.", "confidence": 0.85}',
+    '{"category": "high_risk", "state": "YES", '
+    '"cited_requirements": [{"requirement_key": "EU-AI-ACT-ANNEXIII-4", "citation": "Annex III", '
+    '"relevance": "recruitment"}], "rationale": "Matches Annex III point 4(a).", "confidence": 0.9}',
+]
+
+NON_COMPLIANT_EVIDENCE_RESPONSE = (
+    '{"requirement_key": "EU-AI-ACT-ART9", "status": "NON_COMPLIANT", "dimensions": ['
+    '{"dimension": "relevance", "met": false, "note": "Not specific."},'
+    '{"dimension": "completeness", "met": false, "note": "Missing sections."},'
+    '{"dimension": "specificity", "met": false, "note": "Too generic."},'
+    '{"dimension": "currency", "met": true, "note": "Recent."},'
+    '{"dimension": "traceability", "met": false, "note": "No owner named."},'
+    '{"dimension": "consistency", "met": true, "note": "No conflicts found."},'
+    '{"dimension": "sufficiency", "met": false, "note": "Insufficient detail."}'
+    '], "rationale": "Policy is generic and lacks specificity.", "contradictions": []}'
+)
+
+
+class _FakeLLMHolder:
+    def __init__(self):
+        self.responses: list[str] = []
+
+
+@pytest.fixture
+def web_client(monkeypatch):
+    monkeypatch.setenv("APP_USERNAME", "test-user")
+    monkeypatch.setenv("APP_PASSWORD", "test-password")
+
+    engine = create_engine(
+        "sqlite:///:memory:", connect_args={"check_same_thread": False}, poolclass=StaticPool
+    )
+    Base.metadata.create_all(engine)
+    with Session(engine) as seed_session:
+        ingest_seed(seed_session)
+
+    def override_get_session():
+        session = Session(engine)
+        try:
+            yield session
+        finally:
+            session.close()
+
+    holder = _FakeLLMHolder()
+
+    def override_get_llm_client():
+        return LLMClient(FakeCompletionProvider(holder.responses), model="fake-model")
+
+    app.dependency_overrides[get_session] = override_get_session
+    app.dependency_overrides[get_llm_client] = override_get_llm_client
+    try:
+        client = TestClient(app)
+        client.auth = ("test-user", "test-password")
+        yield client, holder, engine
+    finally:
+        app.dependency_overrides.clear()
+
+
+def _extract_hidden_value(name: str, html_text: str) -> str:
+    match = re.search(rf"name=\"{name}\" value=['\"](.*?)['\"]", html_text, re.DOTALL)
+    assert match, f"hidden field {name!r} not found in response HTML"
+    return html.unescape(match.group(1))
+
+
+def _extract_assessment_id(html_text: str) -> str:
+    match = re.search(r"Assessment ID:</strong>\s*<code>(.*?)</code>", html_text, re.DOTALL)
+    assert match, "assessment ID not found in report HTML"
+    return html.unescape(match.group(1))
+
+
+def test_full_web_flow_facts_to_report_with_citations_gaps_and_review_flags(web_client):
+    client, holder, engine = web_client
+
+    form_page = client.get("/")
+    assert form_page.status_code == 200
+    assert "System description" in form_page.text
+
+    holder.responses = list(HIGH_RISK_CLASSIFICATION_RESPONSES)
+    assess_response = client.post(
+        "/assess",
+        data={
+            "system_description": "An AI tool that screens and ranks job applicant resumes for an employer.",
+            "intended_purpose": "Recruitment and candidate evaluation for employers.",
+            "actor_role": "deployer",
+            "sector": "",
+            "as_of": "2026-09-09",
+        },
+    )
+    assert assess_response.status_code == 200
+    obligations_html = assess_response.text
+    assert "EU-AI-ACT-ANNEXIII-4" in obligations_html  # the classification's citation is shown
+    assert "EU-AI-ACT-ART9" in obligations_html  # obligation triggered by high_risk=YES
+
+    facts_json = _extract_hidden_value("facts_json", obligations_html)
+    classification_json = _extract_hidden_value("classification_json", obligations_html)
+    classification_llm_calls_json = _extract_hidden_value("classification_llm_calls_json", obligations_html)
+    as_of_value = _extract_hidden_value("as_of", obligations_html)
+
+    holder.responses = [NON_COMPLIANT_EVIDENCE_RESPONSE]
+    report_response = client.post(
+        "/report",
+        data={
+            "facts_json": facts_json,
+            "classification_json": classification_json,
+            "classification_llm_calls_json": classification_llm_calls_json,
+            "as_of": as_of_value,
+            "evidence__EU-AI-ACT-ART9": "Generic risk policy: we manage risk appropriately.",
+            # ART10-15 deliberately left blank -> INSUFFICIENT_EVIDENCE, zero LLM calls for them
+        },
+    )
+    assert report_response.status_code == 200
+    report_html = report_response.text
+
+    assert "EU-AI-ACT-ANNEXIII-4" in report_html  # classification citation carried through
+    assert "EU-AI-ACT-ART9" in report_html  # obligation + evidence status shown
+    assert "NON_COMPLIANT" in report_html  # evidence status
+    assert "Gaps (7)" in report_html  # all 7 obligations are gaps (1 non-compliant + 6 insufficient)
+    assert "high_impact_high_risk" in report_html  # review flag for high_risk=YES
+    assert "evidence_gap" in report_html  # review flag for the non-compliant/insufficient obligations
+
+    # Phase 6 DoD: the assessment just produced is fully reconstructable from stored data.
+    assessment_id = _extract_assessment_id(report_html)
+    with Session(engine) as verify_session:
+        reconstructed = reconstruct_assessment(verify_session, assessment_id)
+    assert reconstructed is not None
+    assert reconstructed.classification == ClassificationResult.model_validate_json(classification_json)
+    assert len(reconstructed.obligations) == 7
+    assert len(reconstructed.evidence_assessments) == 7
+    assert len(reconstructed.gaps) == 7
+    assert len(reconstructed.review_flags) >= 2
+    assert len(reconstructed.llm_calls) == 3  # 2 classification calls + 1 evidence call
+    assert reconstructed.total_input_tokens > 0
+    assert reconstructed.error is None
+
+
+def test_uploaded_file_takes_precedence_over_pasted_text(web_client):
+    client, holder, _engine = web_client
+
+    holder.responses = list(HIGH_RISK_CLASSIFICATION_RESPONSES)
+    assess_response = client.post(
+        "/assess",
+        data={
+            "system_description": "An AI tool that screens and ranks job applicant resumes for an employer.",
+            "intended_purpose": "Recruitment and candidate evaluation for employers.",
+            "actor_role": "deployer",
+            "sector": "",
+            "as_of": "2026-09-09",
+        },
+    )
+    obligations_html = assess_response.text
+    facts_json = _extract_hidden_value("facts_json", obligations_html)
+    classification_json = _extract_hidden_value("classification_json", obligations_html)
+    classification_llm_calls_json = _extract_hidden_value("classification_llm_calls_json", obligations_html)
+    as_of_value = _extract_hidden_value("as_of", obligations_html)
+
+    compliant_response = (
+        '{"requirement_key": "EU-AI-ACT-ART9", "status": "COMPLIANT", "dimensions": ['
+        '{"dimension": "relevance", "met": true, "note": "ok"},'
+        '{"dimension": "completeness", "met": true, "note": "ok"},'
+        '{"dimension": "specificity", "met": true, "note": "ok"},'
+        '{"dimension": "currency", "met": true, "note": "ok"},'
+        '{"dimension": "traceability", "met": true, "note": "ok"},'
+        '{"dimension": "consistency", "met": true, "note": "ok"},'
+        '{"dimension": "sufficiency", "met": true, "note": "ok"}'
+        '], "rationale": "Uploaded policy file is thorough.", "contradictions": []}'
+    )
+    holder.responses = [compliant_response]
+    report_response = client.post(
+        "/report",
+        data={
+            "facts_json": facts_json,
+            "classification_json": classification_json,
+            "classification_llm_calls_json": classification_llm_calls_json,
+            "as_of": as_of_value,
+            "evidence__EU-AI-ACT-ART9": "this text should be ignored because a file is also uploaded",
+        },
+        files={"evidence_file__EU-AI-ACT-ART9": ("policy.txt", b"Our thorough risk management policy...", "text/plain")},
+    )
+
+    assert report_response.status_code == 200
+    assert "COMPLIANT" in report_response.text
+    assert "File upload errors" not in report_response.text
+
+
+def test_invalid_file_upload_surfaces_error_and_falls_back_to_insufficient_evidence(web_client):
+    client, holder, _engine = web_client
+
+    holder.responses = list(HIGH_RISK_CLASSIFICATION_RESPONSES)
+    assess_response = client.post(
+        "/assess",
+        data={
+            "system_description": "An AI tool that screens and ranks job applicant resumes for an employer.",
+            "intended_purpose": "Recruitment and candidate evaluation for employers.",
+            "actor_role": "deployer",
+            "sector": "",
+            "as_of": "2026-09-09",
+        },
+    )
+    obligations_html = assess_response.text
+    facts_json = _extract_hidden_value("facts_json", obligations_html)
+    classification_json = _extract_hidden_value("classification_json", obligations_html)
+    classification_llm_calls_json = _extract_hidden_value("classification_llm_calls_json", obligations_html)
+    as_of_value = _extract_hidden_value("as_of", obligations_html)
+
+    holder.responses = []  # no evidence LLM call expected: the file is rejected before assessment
+    report_response = client.post(
+        "/report",
+        data={
+            "facts_json": facts_json,
+            "classification_json": classification_json,
+            "classification_llm_calls_json": classification_llm_calls_json,
+            "as_of": as_of_value,
+        },
+        files={"evidence_file__EU-AI-ACT-ART9": ("malware.exe", b"not a real policy", "application/octet-stream")},
+    )
+
+    assert report_response.status_code == 200
+    report_html = report_response.text
+    assert "File upload errors" in report_html
+    assert "not allowed" in report_html
+    assert "INSUFFICIENT_EVIDENCE" in report_html
+
+
+def test_no_high_risk_no_prohibited_yields_no_obligations_and_no_review(web_client):
+    client, holder, _engine = web_client
+
+    holder.responses = [
+        '{"category": "prohibited_practices", "state": "NO", "cited_requirements": [], '
+        '"rationale": "No indicators.", "confidence": 0.9}',
+        '{"category": "high_risk", "state": "NO", "cited_requirements": [], '
+        '"rationale": "No Annex III match.", "confidence": 0.9}',
+    ]
+    assess_response = client.post(
+        "/assess",
+        data={
+            "system_description": "A customer service chatbot for order status inquiries.",
+            "intended_purpose": "Automate routine customer support.",
+            "actor_role": "",
+            "sector": "",
+            "as_of": "2026-09-09",
+        },
+    )
+    assert "No obligations triggered" in assess_response.text
+
+    facts_json = _extract_hidden_value("facts_json", assess_response.text)
+    classification_json = _extract_hidden_value("classification_json", assess_response.text)
+    classification_llm_calls_json = _extract_hidden_value("classification_llm_calls_json", assess_response.text)
+    as_of_value = _extract_hidden_value("as_of", assess_response.text)
+
+    holder.responses = []
+    report_response = client.post(
+        "/report",
+        data={
+            "facts_json": facts_json,
+            "classification_json": classification_json,
+            "classification_llm_calls_json": classification_llm_calls_json,
+            "as_of": as_of_value,
+        },
+    )
+
+    assert "No obligations apply" in report_response.text
+    assert "No gaps identified" in report_response.text
+    # scope/gpai/transparency have no ingested legal corpus (see docs/legal-methodology.md),
+    # so they always resolve INSUFFICIENT_INFORMATION and always trigger review -- this is
+    # correct, honest behavior, not a bug: an assessment ungrounded for 3 of 5 categories
+    # should always be flagged, not silently treated as "clean."
+    assert "insufficient_information" in report_response.text
+    assert "No review flags raised" not in report_response.text
