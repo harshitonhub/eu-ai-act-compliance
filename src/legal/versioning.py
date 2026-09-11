@@ -10,12 +10,18 @@ from __future__ import annotations
 
 from sqlalchemy.orm import Session
 
-from src.persistence.models import Requirement
+from src.persistence.models import ApplicabilityCondition, LegalException, Requirement
 
 
 def supersede_requirement(
     session: Session, *, old: Requirement, new_summary: str, new_primary_provision_id: str
 ) -> Requirement:
+    """Create the next version of `old`, carrying forward its applicability conditions
+    and exceptions -- an amendment to a requirement's text doesn't imply its applicability
+    changed too. Without this, the new version would have zero ApplicabilityCondition
+    rows and become invisible to find_requirements/retrieve (both INNER JOIN on it),
+    effectively vanishing the requirement instead of updating it.
+    """
     if old.superseded_by_id is not None:
         raise ValueError(f"Requirement {old.requirement_key} v{old.version} is already superseded")
 
@@ -27,6 +33,26 @@ def supersede_requirement(
     )
     session.add(new)
     session.flush()
+
+    for condition in old.applicability_conditions:
+        session.add(
+            ApplicabilityCondition(
+                requirement_id=new.id,
+                actor_role=condition.actor_role,
+                sector=condition.sector,
+                annex_iii_category=condition.annex_iii_category,
+                temporal_start=condition.temporal_start,
+                temporal_end=condition.temporal_end,
+            )
+        )
+    for exception in old.exceptions:
+        session.add(
+            LegalException(
+                requirement_id=new.id,
+                description=exception.description,
+                source_provision_id=exception.source_provision_id,
+            )
+        )
 
     old.superseded_by_id = new.id
     session.flush()
