@@ -1,0 +1,26 @@
+{
+  "case_id": "adversarial-conflicting-actor-roles",
+  "difficulty": "adversarial",
+  "as_of": "2026-09-09",
+  "facts": {
+    "system_description": "We are the provider of this AI recruitment screening system, sold to ourselves acting as deployer, though really we are just a distributor reselling a system built by an unnamed third party.",
+    "intended_purpose": "Recruitment screening of job applicants.",
+    "actor_roles": [
+      "provider",
+      "deployer",
+      "distributor"
+    ]
+  },
+  "fake_llm_responses": {
+    "prohibited_practices": "{\"category\": \"prohibited_practices\", \"state\": \"NO\", \"cited_requirements\": [], \"rationale\": \"No prohibited practice indicators.\", \"confidence\": 0.85}",
+    "high_risk": "{\"category\": \"high_risk\", \"state\": \"YES\", \"cited_requirements\": [{\"requirement_key\": \"EU-AI-ACT-ANNEXIII-4\", \"citation\": \"Annex III\", \"relevance\": \"Recruitment screening.\"}], \"rationale\": \"Recruitment screening matches Annex III point 4(a) regardless of which actor role applies; actor role ambiguity does not change the classification outcome for this category, though it would affect which Section 2/3 obligations attach to which party.\", \"confidence\": 0.85}"
+  },
+  "expected_states": {
+    "scope": "INSUFFICIENT_INFORMATION",
+    "prohibited_practices": "NO",
+    "high_risk": "YES",
+    "gpai": "INSUFFICIENT_INFORMATION",
+    "transparency": "INSUFFICIENT_INFORMATION"
+  },
+  "notes": "Tests that self-contradictory/conflicting actor-role claims in the input don't derail the classification itself (which doesn't depend on resolving the role conflict) or cause a crash. Resolving which specific obligations attach to which conflicting role is out of scope -- this corpus only ingested provider-side Section 2 obligations (see docs/legal-methodology.md)."
+}

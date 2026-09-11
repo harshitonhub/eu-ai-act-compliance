@@ -1,0 +1,60 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v3
+        with:
+          version: "0.5.x"
+
+      - name: Set up Python
+        run: uv python install 3.12
+
+      # --frozen: fail the build if uv.lock is out of sync with pyproject.toml, rather
+      # than silently re-resolving to possibly-different versions in CI.
+      - name: Install dependencies (pinned via uv.lock)
+        run: uv sync --frozen --extra dev
+
+      - name: Migration round-trip (up/down/up)
+        run: |
+          uv run alembic upgrade head
+          uv run alembic downgrade base
+          uv run alembic upgrade head
+        env:
+          DATABASE_URL: "sqlite:///./ci_migration_check.db"
+
+      # The full suite: unit/integration tests, the classification and evidence golden
+      # datasets, and the adversarial suite (evals/adversarial/) all run here, per
+      # .claude/rules/testing.md -- there is no separate eval-only job because every
+      # eval in this repo runs fully offline via FakeCompletionProvider (see
+      # evals/golden/classification_v1/README.md's scope note) and completes in seconds.
+      - name: Run tests (unit, integration, golden, adversarial)
+        run: uv run pytest -v
+
+  dependency-audit:
+    runs-on: ubuntu-latest
+    # Advisory only: a newly-disclosed CVE in a pinned dependency shouldn't block an
+    # unrelated PR from merging, but must be visible. Promote to blocking once the
+    # project has a process for triaging/waiving specific findings.
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install uv
+        uses: astral-sh/setup-uv@v3
+        with:
+          version: "0.5.x"
+      - name: Set up Python
+        run: uv python install 3.12
+      - name: Install dependencies
+        run: uv sync --frozen --extra dev
+      - name: Audit dependencies for known vulnerabilities
+        run: uv run pip-audit --local
