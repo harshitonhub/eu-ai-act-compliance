@@ -1,0 +1,14 @@
+{
+  "case_id": "partially-compliant-generic-data-governance-policy",
+  "difficulty": "partial",
+  "obligation": {
+    "requirement_key": "EU-AI-ACT-ART10",
+    "citation": "Article 10",
+    "summary": "Training/validation/testing data sets must be subject to appropriate data governance practices."
+  },
+  "evidence_text": "Data Governance Policy: We use good data practices and ensure our data is of high quality. We take data governance seriously.",
+  "fake_llm_response": "{\"requirement_key\": \"EU-AI-ACT-ART10\", \"status\": \"PARTIALLY_COMPLIANT\", \"dimensions\": [{\"dimension\": \"relevance\", \"met\": true, \"note\": \"Meets requirement.\"}, {\"dimension\": \"completeness\", \"met\": true, \"note\": \"Meets requirement.\"}, {\"dimension\": \"specificity\", \"met\": false, \"note\": \"Generic or missing.\"}, {\"dimension\": \"currency\", \"met\": true, \"note\": \"Meets requirement.\"}, {\"dimension\": \"traceability\", \"met\": true, \"note\": \"Meets requirement.\"}, {\"dimension\": \"consistency\", \"met\": true, \"note\": \"Meets requirement.\"}, {\"dimension\": \"sufficiency\", \"met\": false, \"note\": \"Generic or missing.\"}], \"rationale\": \"Policy exists and is relevant but is generic boilerplate with no concrete data governance practices, bias examination steps, or gap analysis described.\", \"contradictions\": []}",
+  "expected_status": "PARTIALLY_COMPLIANT",
+  "expected_contradictions_present": false,
+  "notes": "Tests that a generic, vague policy is not sufficient -- existence of a policy is not proof of implementation."
+}

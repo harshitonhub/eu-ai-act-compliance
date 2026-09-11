@@ -1,0 +1,14 @@
+{
+  "case_id": "non-compliant-contradictory-risk-assessments",
+  "difficulty": "contradictory",
+  "obligation": {
+    "requirement_key": "EU-AI-ACT-ART9",
+    "citation": "Article 9",
+    "summary": "Providers must establish, implement, document, and maintain a risk management system."
+  },
+  "evidence_text": "Risk Assessment v1 (Engineering, 2026-05-01): 'Overall residual risk rated LOW; no significant risks identified requiring mitigation.'\n\nRisk Assessment v1 (Compliance, 2026-05-03): 'Overall residual risk rated HIGH due to unmitigated bias risk in the training data identified during the same review period; mitigation plan required before launch.'",
+  "fake_llm_response": "{\"requirement_key\": \"EU-AI-ACT-ART9\", \"status\": \"NON_COMPLIANT\", \"dimensions\": [{\"dimension\": \"relevance\", \"met\": true, \"note\": \"Meets requirement.\"}, {\"dimension\": \"completeness\", \"met\": true, \"note\": \"Meets requirement.\"}, {\"dimension\": \"specificity\", \"met\": true, \"note\": \"Meets requirement.\"}, {\"dimension\": \"currency\", \"met\": true, \"note\": \"Meets requirement.\"}, {\"dimension\": \"traceability\", \"met\": false, \"note\": \"Generic or missing.\"}, {\"dimension\": \"consistency\", \"met\": false, \"note\": \"Generic or missing.\"}, {\"dimension\": \"sufficiency\", \"met\": true, \"note\": \"Meets requirement.\"}], \"rationale\": \"Two risk assessments covering the same system and period reach opposite overall risk ratings, indicating the risk management process is not producing a single, traceable conclusion.\", \"contradictions\": [\"Engineering's risk assessment rates overall risk LOW; Compliance's assessment of the same period rates it HIGH due to unmitigated bias risk.\"]}",
+  "expected_status": "NON_COMPLIANT",
+  "expected_contradictions_present": true,
+  "notes": "Second contradictory-evidence case, same obligation as the first compliant case to show the same obligation can be judged differently depending on the evidence quality."
+}

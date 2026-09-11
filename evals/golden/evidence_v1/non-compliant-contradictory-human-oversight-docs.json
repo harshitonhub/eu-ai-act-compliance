@@ -1,0 +1,14 @@
+{
+  "case_id": "non-compliant-contradictory-human-oversight-docs",
+  "difficulty": "contradictory",
+  "obligation": {
+    "requirement_key": "EU-AI-ACT-ART14",
+    "citation": "Article 14",
+    "summary": "High-risk AI systems must be designed to allow effective human oversight."
+  },
+  "evidence_text": "Document A (System Design Spec, 2026-03-01): 'The system requires a human reviewer to approve every decision before it takes effect; the system cannot act autonomously.'\n\nDocument B (Operations Runbook, 2026-06-15): 'The system operates in fully automated mode in production; human review was disabled after the Q2 rollout to improve throughput.'",
+  "fake_llm_response": "{\"requirement_key\": \"EU-AI-ACT-ART14\", \"status\": \"NON_COMPLIANT\", \"dimensions\": [{\"dimension\": \"relevance\", \"met\": true, \"note\": \"Meets requirement.\"}, {\"dimension\": \"completeness\", \"met\": true, \"note\": \"Meets requirement.\"}, {\"dimension\": \"specificity\", \"met\": true, \"note\": \"Meets requirement.\"}, {\"dimension\": \"currency\", \"met\": true, \"note\": \"Meets requirement.\"}, {\"dimension\": \"traceability\", \"met\": true, \"note\": \"Meets requirement.\"}, {\"dimension\": \"consistency\", \"met\": false, \"note\": \"Generic or missing.\"}, {\"dimension\": \"sufficiency\", \"met\": false, \"note\": \"Generic or missing.\"}], \"rationale\": \"The design spec and the operations runbook directly contradict each other on whether human oversight is actually active in production; the more recent operational document indicates oversight was disabled.\", \"contradictions\": [\"Design spec claims mandatory human approval; operations runbook states human review was disabled in production as of 2026-06-15.\"]}",
+  "expected_status": "NON_COMPLIANT",
+  "expected_contradictions_present": true,
+  "notes": "Primary contradictory-evidence case: two documents disagree on whether oversight is active."
+}

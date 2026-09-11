@@ -1,0 +1,92 @@
+{
+  "source_document_key": "eu_ai_act_2024_1689",
+  "celex_id": "32024R1689",
+  "official_title": "Regulation (EU) 2024/1689 of the European Parliament and of the Council of 13 June 2024 laying down harmonised rules on artificial intelligence and amending Regulations (EC) No 300/2008, (EU) No 167/2013, (EU) No 168/2013, (EU) 2018/858, (EU) 2018/1139 and (EU) 2019/2144 and Directives 2014/90/EU, (EU) 2016/797 and (EU) 2020/1828 (Artificial Intelligence Act)",
+  "short_name": "EU AI Act",
+  "oj_reference": "OJ L, 2024/1689, 12.7.2024",
+  "date_of_act": "2024-06-13",
+  "date_published": "2024-07-12",
+  "date_entry_into_force": "2024-08-01",
+  "source_url": "https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:32024R1689",
+  "retrieval_method": "automated_fetch_verbatim_extraction",
+  "retrieval_note": "Fetched raw HTML directly via HTTP GET (curl), stripped markup with a regex tag-stripper only (no LLM summarization or paraphrase in the extraction path), then located article/annex boundaries by exact heading-text search. Text below is copied verbatim from the stripped output.",
+  "raw_fetch_sha256": "0fa54a429a8bab024428aa3fb803f12abf234f713d11b30f07437e829f7468f2",
+  "retrieved_at": "2026-09-09T00:00:00Z",
+  "application_dates": {
+    "chapters_i_ii": "2025-02-02",
+    "chapter_iii_section_4_v_vii_xii_and_art_78": "2025-08-02",
+    "article_6_1_and_corresponding_obligations": "2027-08-02",
+    "general_application": "2026-08-02"
+  },
+  "application_dates_source": "Article 113 'Entry into force and application', verbatim: \"This Regulation shall enter into force on the twentieth day following that of its publication in the Official Journal of the European Union. It shall apply from 2 August 2026. However: (a) Chapters I and II shall apply from 2 February 2025; (b) Chapter III Section 4, Chapter V, Chapter VII and Chapter XII and Article 78 shall apply from 2 August 2025, with the exception of Article 101; (c) Article 6(1) and the corresponding obligations in this Regulation shall apply from 2 August 2027.\"",
+  "excerpts_ingested": [
+    {
+      "citation": "Article 5",
+      "file": "article_5.txt",
+      "heading": "Prohibited AI practices",
+      "chapter": "Chapter II"
+    },
+    {
+      "citation": "Article 6",
+      "file": "article_6.txt",
+      "heading": "Classification rules for high-risk AI systems",
+      "chapter": "Chapter III, Section 1"
+    },
+    {
+      "citation": "Annex III",
+      "file": "annex_iii.txt",
+      "heading": "High-risk AI systems referred to in Article 6(2)",
+      "chapter": null
+    },
+    {
+      "citation": "Article 9",
+      "file": "article_9.txt",
+      "heading": "Risk management system",
+      "chapter": "Chapter III, Section 2",
+      "extracted_at": "2026-09-10T00:00:00Z"
+    },
+    {
+      "citation": "Article 10",
+      "file": "article_10.txt",
+      "heading": "Data and data governance",
+      "chapter": "Chapter III, Section 2",
+      "extracted_at": "2026-09-10T00:00:00Z"
+    },
+    {
+      "citation": "Article 11",
+      "file": "article_11.txt",
+      "heading": "Technical documentation",
+      "chapter": "Chapter III, Section 2",
+      "extracted_at": "2026-09-10T00:00:00Z"
+    },
+    {
+      "citation": "Article 12",
+      "file": "article_12.txt",
+      "heading": "Record-keeping",
+      "chapter": "Chapter III, Section 2",
+      "extracted_at": "2026-09-10T00:00:00Z"
+    },
+    {
+      "citation": "Article 13",
+      "file": "article_13.txt",
+      "heading": "Transparency and provision of information to deployers",
+      "chapter": "Chapter III, Section 2",
+      "extracted_at": "2026-09-10T00:00:00Z"
+    },
+    {
+      "citation": "Article 14",
+      "file": "article_14.txt",
+      "heading": "Human oversight",
+      "chapter": "Chapter III, Section 2",
+      "extracted_at": "2026-09-10T00:00:00Z"
+    },
+    {
+      "citation": "Article 15",
+      "file": "article_15.txt",
+      "heading": "Accuracy, robustness and cybersecurity",
+      "chapter": "Chapter III, Section 2",
+      "extracted_at": "2026-09-10T00:00:00Z"
+    }
+  ],
+  "excerpts_extraction_note": "Articles 9-15 were extracted from the same raw fetch as the Phase 1 seed (same raw_fetch_sha256) on 2026-09-10, when Phase 4's obligation mapping needed a legal basis for what obligations attach to a high-risk classification. No new HTTP fetch was needed since the full regulation text was already captured in the original fetch."
+}

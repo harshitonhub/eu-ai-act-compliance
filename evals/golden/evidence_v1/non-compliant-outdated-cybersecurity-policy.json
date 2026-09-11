@@ -1,0 +1,14 @@
+{
+  "case_id": "non-compliant-outdated-cybersecurity-policy",
+  "difficulty": "outdated",
+  "obligation": {
+    "requirement_key": "EU-AI-ACT-ART15",
+    "citation": "Article 15",
+    "summary": "High-risk AI systems must achieve an appropriate level of accuracy, robustness, and cybersecurity."
+  },
+  "evidence_text": "Cybersecurity Policy (last reviewed 2019-04-10): covers protection against basic network intrusion and password policies. Does not reference adversarial examples, data poisoning, model poisoning, or any AI-specific attack vectors.",
+  "fake_llm_response": "{\"requirement_key\": \"EU-AI-ACT-ART15\", \"status\": \"NON_COMPLIANT\", \"dimensions\": [{\"dimension\": \"relevance\", \"met\": true, \"note\": \"Meets requirement.\"}, {\"dimension\": \"completeness\", \"met\": false, \"note\": \"Generic or missing.\"}, {\"dimension\": \"specificity\", \"met\": true, \"note\": \"Meets requirement.\"}, {\"dimension\": \"currency\", \"met\": false, \"note\": \"Generic or missing.\"}, {\"dimension\": \"traceability\", \"met\": true, \"note\": \"Meets requirement.\"}, {\"dimension\": \"consistency\", \"met\": true, \"note\": \"Meets requirement.\"}, {\"dimension\": \"sufficiency\", \"met\": false, \"note\": \"Generic or missing.\"}], \"rationale\": \"Policy predates the AI Act and standard AI-specific threat categories (data/model poisoning, adversarial examples) by years and does not address them; it is stale relative to the obligation's requirements.\", \"contradictions\": []}",
+  "expected_status": "NON_COMPLIANT",
+  "expected_contradictions_present": false,
+  "notes": "Tests the currency dimension specifically -- an old, generic security policy fails an AI-specific obligation."
+}

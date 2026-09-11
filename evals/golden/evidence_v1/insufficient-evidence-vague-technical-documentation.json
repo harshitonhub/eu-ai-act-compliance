@@ -1,0 +1,14 @@
+{
+  "case_id": "insufficient-evidence-vague-technical-documentation",
+  "difficulty": "insufficient",
+  "obligation": {
+    "requirement_key": "EU-AI-ACT-ART11",
+    "citation": "Article 11",
+    "summary": "Providers must draw up and maintain technical documentation demonstrating compliance."
+  },
+  "evidence_text": "See attached documentation.",
+  "fake_llm_response": "{\"requirement_key\": \"EU-AI-ACT-ART11\", \"status\": \"INSUFFICIENT_EVIDENCE\", \"dimensions\": [{\"dimension\": \"relevance\", \"met\": false, \"note\": \"Generic or missing.\"}, {\"dimension\": \"completeness\", \"met\": false, \"note\": \"Generic or missing.\"}, {\"dimension\": \"specificity\", \"met\": false, \"note\": \"Generic or missing.\"}, {\"dimension\": \"currency\", \"met\": false, \"note\": \"Generic or missing.\"}, {\"dimension\": \"traceability\", \"met\": false, \"note\": \"Generic or missing.\"}, {\"dimension\": \"consistency\", \"met\": false, \"note\": \"Generic or missing.\"}, {\"dimension\": \"sufficiency\", \"met\": false, \"note\": \"Generic or missing.\"}], \"rationale\": \"A bare reference to 'attached documentation' with no actual content provides no basis to assess any dimension.\", \"contradictions\": []}",
+  "expected_status": "INSUFFICIENT_EVIDENCE",
+  "expected_contradictions_present": false,
+  "notes": "Evidence text present but contentless -- distinct from the no-evidence-supplied deterministic case below."
+}

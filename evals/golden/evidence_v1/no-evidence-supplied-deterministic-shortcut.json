@@ -1,0 +1,14 @@
+{
+  "case_id": "no-evidence-supplied-deterministic-shortcut",
+  "difficulty": "no_evidence",
+  "obligation": {
+    "requirement_key": "EU-AI-ACT-ART12",
+    "citation": "Article 12",
+    "summary": "High-risk AI systems must technically allow automatic recording of events (logs)."
+  },
+  "evidence_text": "",
+  "fake_llm_response": null,
+  "expected_status": "INSUFFICIENT_EVIDENCE",
+  "expected_contradictions_present": false,
+  "notes": "Empty evidence_text must short-circuit deterministically -- zero LLM calls expected."
+}

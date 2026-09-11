@@ -1,0 +1,14 @@
+{
+  "case_id": "compliant-thorough-transparency-to-deployers",
+  "difficulty": "obvious",
+  "obligation": {
+    "requirement_key": "EU-AI-ACT-ART13",
+    "citation": "Article 13",
+    "summary": "High-risk AI systems must be designed to allow deployers to interpret and use output appropriately."
+  },
+  "evidence_text": "Instructions for Use v2.0 (published 2026-07-20): includes the system's intended purpose, performance characteristics and known limitations, required human oversight measures, expected input data specifications, and a named point of contact for deployer questions. Distributed to all deployers at onboarding and versioned alongside each model release.",
+  "fake_llm_response": "{\"requirement_key\": \"EU-AI-ACT-ART13\", \"status\": \"COMPLIANT\", \"dimensions\": [{\"dimension\": \"relevance\", \"met\": true, \"note\": \"Meets requirement.\"}, {\"dimension\": \"completeness\", \"met\": true, \"note\": \"Meets requirement.\"}, {\"dimension\": \"specificity\", \"met\": true, \"note\": \"Meets requirement.\"}, {\"dimension\": \"currency\", \"met\": true, \"note\": \"Meets requirement.\"}, {\"dimension\": \"traceability\", \"met\": true, \"note\": \"Meets requirement.\"}, {\"dimension\": \"consistency\", \"met\": true, \"note\": \"Meets requirement.\"}, {\"dimension\": \"sufficiency\", \"met\": true, \"note\": \"Meets requirement.\"}], \"rationale\": \"Instructions are specific, current, distributed at the right point, and cover the information a deployer needs for compliant use.\", \"contradictions\": []}",
+  "expected_status": "COMPLIANT",
+  "expected_contradictions_present": false,
+  "notes": "Second clear-cut compliant case, different obligation."
+}

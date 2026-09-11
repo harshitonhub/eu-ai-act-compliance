@@ -1,0 +1,14 @@
+{
+  "case_id": "compliant-thorough-risk-management",
+  "difficulty": "obvious",
+  "obligation": {
+    "requirement_key": "EU-AI-ACT-ART9",
+    "citation": "Article 9",
+    "summary": "Providers must establish, implement, document, and maintain a risk management system."
+  },
+  "evidence_text": "Risk Management Policy v3.2 (reviewed 2026-08-01): defines a continuous risk management process covering the full AI system lifecycle, with named risk owners, a documented risk register updated quarterly, specific risk categories (bias, safety, security), and cross-references to the incident response and technical documentation processes.",
+  "fake_llm_response": "{\"requirement_key\": \"EU-AI-ACT-ART9\", \"status\": \"COMPLIANT\", \"dimensions\": [{\"dimension\": \"relevance\", \"met\": true, \"note\": \"Meets requirement.\"}, {\"dimension\": \"completeness\", \"met\": true, \"note\": \"Meets requirement.\"}, {\"dimension\": \"specificity\", \"met\": true, \"note\": \"Meets requirement.\"}, {\"dimension\": \"currency\", \"met\": true, \"note\": \"Meets requirement.\"}, {\"dimension\": \"traceability\", \"met\": true, \"note\": \"Meets requirement.\"}, {\"dimension\": \"consistency\", \"met\": true, \"note\": \"Meets requirement.\"}, {\"dimension\": \"sufficiency\", \"met\": true, \"note\": \"Meets requirement.\"}], \"rationale\": \"Policy is specific, current, traceable to owners, and covers the full lifecycle as required.\", \"contradictions\": []}",
+  "expected_status": "COMPLIANT",
+  "expected_contradictions_present": false,
+  "notes": "Clear-cut thorough, current, specific policy."
+}
