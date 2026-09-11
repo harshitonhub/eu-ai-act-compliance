@@ -1,0 +1,24 @@
+{
+  "case_id": "borderline-highrisk-narrow-procedural-task-no",
+  "difficulty": "borderline",
+  "as_of": "2026-09-09",
+  "facts": {
+    "system_description": "A tool used in a recruitment process that only formats and organizes submitted resumes into a standard template for human recruiters to review; it does not evaluate, score, or rank any candidate.",
+    "intended_purpose": "Reformat resume documents into a standard layout for human reviewers, with no evaluation of candidates.",
+    "actor_roles": [
+      "provider"
+    ]
+  },
+  "fake_llm_responses": {
+    "prohibited_practices": "{\"category\": \"prohibited_practices\", \"state\": \"NO\", \"cited_requirements\": [], \"rationale\": \"No prohibited practice indicators present.\", \"confidence\": 0.85}",
+    "high_risk": "{\"category\": \"high_risk\", \"state\": \"NO\", \"cited_requirements\": [{\"requirement_key\": \"EU-AI-ACT-ART6-2\", \"citation\": \"Article 6\", \"relevance\": \"Article 6(3) narrow-procedural-task derogation.\"}], \"rationale\": \"Performs only a narrow procedural task (reformatting) with no evaluation of candidates; the Article 6(3) derogation applies and no profiling is performed.\", \"confidence\": 0.85}"
+  },
+  "expected_states": {
+    "scope": "INSUFFICIENT_INFORMATION",
+    "prohibited_practices": "NO",
+    "high_risk": "NO",
+    "gpai": "INSUFFICIENT_INFORMATION",
+    "transparency": "INSUFFICIENT_INFORMATION"
+  },
+  "notes": "Tests the Article 6(3) narrow-procedural-task derogation from Annex III high-risk status."
+}

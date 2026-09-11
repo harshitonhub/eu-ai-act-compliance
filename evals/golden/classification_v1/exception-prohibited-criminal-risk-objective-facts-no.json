@@ -1,0 +1,25 @@
+{
+  "case_id": "exception-prohibited-criminal-risk-objective-facts-no",
+  "difficulty": "exception",
+  "as_of": "2026-09-09",
+  "facts": {
+    "system_description": "A tool used by police detectives to support their assessment of a specific, already-identified suspect's involvement in a burglary, based on objective and verifiable facts already established such as fingerprint matches and eyewitness statements.",
+    "intended_purpose": "Support human assessment of an identified suspect's involvement in a specific criminal offence already linked to objective, verifiable facts.",
+    "actor_roles": [
+      "deployer"
+    ],
+    "sector": "law enforcement"
+  },
+  "fake_llm_responses": {
+    "prohibited_practices": "{\"category\": \"prohibited_practices\", \"state\": \"NO\", \"cited_requirements\": [{\"requirement_key\": \"EU-AI-ACT-ART5-1-D\", \"citation\": \"Article 5\", \"relevance\": \"Exception for human assessment based on objective/verifiable facts.\"}], \"rationale\": \"The Article 5(1)(d) exception applies: this supports human assessment of a person already linked to a criminal activity via objective, verifiable facts, not solely profiling.\", \"confidence\": 0.85}",
+    "high_risk": "{\"category\": \"high_risk\", \"state\": \"NO\", \"cited_requirements\": [], \"rationale\": \"As described, does not match a retrieved Annex III high-risk pathway.\", \"confidence\": 0.85}"
+  },
+  "expected_states": {
+    "scope": "INSUFFICIENT_INFORMATION",
+    "prohibited_practices": "NO",
+    "high_risk": "NO",
+    "gpai": "INSUFFICIENT_INFORMATION",
+    "transparency": "INSUFFICIENT_INFORMATION"
+  },
+  "notes": "Tests the built-in Article 5(1)(d) exception clause."
+}

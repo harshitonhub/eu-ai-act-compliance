@@ -1,0 +1,21 @@
+{
+  "case_id": "temporal-not-applicable-before-entry-into-force",
+  "difficulty": "temporal",
+  "as_of": "2024-06-01",
+  "facts": {
+    "system_description": "An AI tool used by an employer to automatically filter and rank job applications and recommend which candidates should be invited to interview.",
+    "intended_purpose": "Recruitment and candidate screening for job openings.",
+    "actor_roles": [
+      "deployer"
+    ]
+  },
+  "fake_llm_responses": {},
+  "expected_states": {
+    "scope": "INSUFFICIENT_INFORMATION",
+    "prohibited_practices": "NOT_APPLICABLE",
+    "high_risk": "NOT_APPLICABLE",
+    "gpai": "INSUFFICIENT_INFORMATION",
+    "transparency": "INSUFFICIENT_INFORMATION"
+  },
+  "notes": "Before 2024-08-01 (entry into force) no chapter has applied yet; both categories resolve deterministically to NOT_APPLICABLE without any LLM call."
+}

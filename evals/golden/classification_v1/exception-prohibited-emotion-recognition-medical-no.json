@@ -1,0 +1,25 @@
+{
+  "case_id": "exception-prohibited-emotion-recognition-medical-no",
+  "difficulty": "exception",
+  "as_of": "2026-09-09",
+  "facts": {
+    "system_description": "A hospital ICU monitoring system that detects signs of patient distress and pain through facial expression analysis, used solely to alert nurses for medical safety reasons.",
+    "intended_purpose": "Detect patient distress for medical and safety monitoring in intensive care.",
+    "actor_roles": [
+      "deployer"
+    ],
+    "sector": "healthcare"
+  },
+  "fake_llm_responses": {
+    "prohibited_practices": "{\"category\": \"prohibited_practices\", \"state\": \"NO\", \"cited_requirements\": [{\"requirement_key\": \"EU-AI-ACT-ART5-1-F\", \"citation\": \"Article 5\", \"relevance\": \"Medical/safety exception to emotion recognition prohibition.\"}], \"rationale\": \"The Article 5(1)(f) medical/safety exception applies to this emotion-inference use case.\", \"confidence\": 0.85}",
+    "high_risk": "{\"category\": \"high_risk\", \"state\": \"NO\", \"cited_requirements\": [], \"rationale\": \"ICU distress monitoring does not match a retrieved Annex III pathway.\", \"confidence\": 0.85}"
+  },
+  "expected_states": {
+    "scope": "INSUFFICIENT_INFORMATION",
+    "prohibited_practices": "NO",
+    "high_risk": "NO",
+    "gpai": "INSUFFICIENT_INFORMATION",
+    "transparency": "INSUFFICIENT_INFORMATION"
+  },
+  "notes": "Tests the Article 5(1)(f) medical/safety exception clause."
+}

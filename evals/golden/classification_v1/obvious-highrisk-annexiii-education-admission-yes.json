@@ -1,0 +1,25 @@
+{
+  "case_id": "obvious-highrisk-annexiii-education-admission-yes",
+  "difficulty": "obvious",
+  "as_of": "2026-09-09",
+  "facts": {
+    "system_description": "A university admissions system that uses AI to decide which applicants are admitted to degree programs based on their application materials.",
+    "intended_purpose": "Determine admission of students to university degree programs.",
+    "actor_roles": [
+      "deployer"
+    ],
+    "sector": "education"
+  },
+  "fake_llm_responses": {
+    "prohibited_practices": "{\"category\": \"prohibited_practices\", \"state\": \"NO\", \"cited_requirements\": [], \"rationale\": \"No prohibited practice indicators present.\", \"confidence\": 0.85}",
+    "high_risk": "{\"category\": \"high_risk\", \"state\": \"YES\", \"cited_requirements\": [{\"requirement_key\": \"EU-AI-ACT-ANNEXIII-3\", \"citation\": \"Annex III\", \"relevance\": \"Access or admission to educational institutions.\"}], \"rationale\": \"Determining admission to educational institutions matches Annex III point 3(a).\", \"confidence\": 0.85}"
+  },
+  "expected_states": {
+    "scope": "INSUFFICIENT_INFORMATION",
+    "prohibited_practices": "NO",
+    "high_risk": "YES",
+    "gpai": "INSUFFICIENT_INFORMATION",
+    "transparency": "INSUFFICIENT_INFORMATION"
+  },
+  "notes": "Clear-cut Annex III point 3(a) education admission case."
+}

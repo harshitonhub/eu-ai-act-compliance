@@ -1,0 +1,23 @@
+{
+  "case_id": "temporal-partial-application-prohibited-in-force-highrisk-not",
+  "difficulty": "temporal",
+  "as_of": "2025-06-01",
+  "facts": {
+    "system_description": "An AI tool used by an employer to automatically filter and rank job applications and recommend which candidates should be invited to interview.",
+    "intended_purpose": "Recruitment and candidate screening for job openings.",
+    "actor_roles": [
+      "deployer"
+    ]
+  },
+  "fake_llm_responses": {
+    "prohibited_practices": "{\"category\": \"prohibited_practices\", \"state\": \"NO\", \"cited_requirements\": [], \"rationale\": \"No prohibited practice indicators present.\", \"confidence\": 0.85}"
+  },
+  "expected_states": {
+    "scope": "INSUFFICIENT_INFORMATION",
+    "prohibited_practices": "NO",
+    "high_risk": "NOT_APPLICABLE",
+    "gpai": "INSUFFICIENT_INFORMATION",
+    "transparency": "INSUFFICIENT_INFORMATION"
+  },
+  "notes": "2025-06-01: Chapter II (Article 5) is in force (since 2025-02-02); the Annex III high-risk pathway is not yet (general application date 2026-08-02) -- high_risk is NOT_APPLICABLE, deterministically, no LLM call for that category."
+}

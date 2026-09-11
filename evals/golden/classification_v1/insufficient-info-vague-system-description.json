@@ -1,0 +1,26 @@
+{
+  "case_id": "insufficient-info-vague-system-description",
+  "difficulty": "insufficient_information",
+  "as_of": "2026-09-09",
+  "facts": {
+    "system_description": "An AI system.",
+    "intended_purpose": "Not specified.",
+    "insufficient_information_fields": [
+      "sector",
+      "decisions_or_outcomes_influenced",
+      "affected_persons_description"
+    ]
+  },
+  "fake_llm_responses": {
+    "prohibited_practices": "{\"category\": \"prohibited_practices\", \"state\": \"INSUFFICIENT_INFORMATION\", \"cited_requirements\": [], \"rationale\": \"Facts are too vague to determine whether any prohibited practice is present.\", \"confidence\": 0.0}",
+    "high_risk": "{\"category\": \"high_risk\", \"state\": \"INSUFFICIENT_INFORMATION\", \"cited_requirements\": [], \"rationale\": \"Facts do not state intended purpose, sector, or decisions influenced; cannot assess Annex III applicability.\", \"confidence\": 0.0}"
+  },
+  "expected_states": {
+    "scope": "INSUFFICIENT_INFORMATION",
+    "prohibited_practices": "INSUFFICIENT_INFORMATION",
+    "high_risk": "INSUFFICIENT_INFORMATION",
+    "gpai": "INSUFFICIENT_INFORMATION",
+    "transparency": "INSUFFICIENT_INFORMATION"
+  },
+  "notes": "Near-empty facts must yield INSUFFICIENT_INFORMATION, not a guessed NO."
+}

@@ -1,0 +1,25 @@
+{
+  "case_id": "obvious-prohibited-social-scoring-and-highrisk-benefits",
+  "difficulty": "obvious",
+  "as_of": "2026-09-09",
+  "facts": {
+    "system_description": "A government platform that continuously scores every citizen's trustworthiness based on unrelated social media behaviour and denies access to public housing benefits to citizens with the lowest scores.",
+    "intended_purpose": "Social scoring of citizens used to determine eligibility for public housing benefits.",
+    "actor_roles": [
+      "deployer"
+    ],
+    "sector": "public administration"
+  },
+  "fake_llm_responses": {
+    "prohibited_practices": "{\"category\": \"prohibited_practices\", \"state\": \"YES\", \"cited_requirements\": [{\"requirement_key\": \"EU-AI-ACT-ART5-1-C\", \"citation\": \"Article 5\", \"relevance\": \"Social scoring leading to detrimental treatment.\"}], \"rationale\": \"Social scoring across unrelated contexts leading to detrimental treatment matches Article 5(1)(c).\", \"confidence\": 0.85}",
+    "high_risk": "{\"category\": \"high_risk\", \"state\": \"YES\", \"cited_requirements\": [{\"requirement_key\": \"EU-AI-ACT-ANNEXIII-5\", \"citation\": \"Annex III\", \"relevance\": \"Eligibility for public assistance benefits.\"}], \"rationale\": \"Independently of the prohibition, evaluating eligibility for public benefits also matches Annex III point 5(a).\", \"confidence\": 0.85}"
+  },
+  "expected_states": {
+    "scope": "INSUFFICIENT_INFORMATION",
+    "prohibited_practices": "YES",
+    "high_risk": "YES",
+    "gpai": "INSUFFICIENT_INFORMATION",
+    "transparency": "INSUFFICIENT_INFORMATION"
+  },
+  "notes": "Categories are assessed independently: a system can be both prohibited AND match a high-risk Annex III area on paper."
+}

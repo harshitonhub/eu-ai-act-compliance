@@ -1,0 +1,25 @@
+{
+  "case_id": "obvious-highrisk-annexiii-creditworthiness-yes",
+  "difficulty": "obvious",
+  "as_of": "2026-09-09",
+  "facts": {
+    "system_description": "A bank's AI system that evaluates loan applicants and establishes their credit score to decide whether to approve consumer loans.",
+    "intended_purpose": "Assess creditworthiness of natural persons applying for loans.",
+    "actor_roles": [
+      "provider"
+    ],
+    "sector": "financial services"
+  },
+  "fake_llm_responses": {
+    "prohibited_practices": "{\"category\": \"prohibited_practices\", \"state\": \"NO\", \"cited_requirements\": [], \"rationale\": \"No prohibited practice indicators present.\", \"confidence\": 0.85}",
+    "high_risk": "{\"category\": \"high_risk\", \"state\": \"YES\", \"cited_requirements\": [{\"requirement_key\": \"EU-AI-ACT-ANNEXIII-5\", \"citation\": \"Annex III\", \"relevance\": \"Creditworthiness evaluation and credit scoring.\"}], \"rationale\": \"Evaluating creditworthiness and credit scoring matches Annex III point 5(b).\", \"confidence\": 0.85}"
+  },
+  "expected_states": {
+    "scope": "INSUFFICIENT_INFORMATION",
+    "prohibited_practices": "NO",
+    "high_risk": "YES",
+    "gpai": "INSUFFICIENT_INFORMATION",
+    "transparency": "INSUFFICIENT_INFORMATION"
+  },
+  "notes": "Clear-cut Annex III point 5(b) creditworthiness case."
+}

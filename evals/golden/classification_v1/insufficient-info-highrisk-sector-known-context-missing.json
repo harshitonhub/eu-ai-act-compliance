@@ -1,0 +1,27 @@
+{
+  "case_id": "insufficient-info-highrisk-sector-known-context-missing",
+  "difficulty": "insufficient_information",
+  "as_of": "2026-09-09",
+  "facts": {
+    "system_description": "An AI system used somewhere within a hospital's IT systems.",
+    "intended_purpose": "Assist hospital operations in an unspecified way.",
+    "sector": "healthcare",
+    "insufficient_information_fields": [
+      "decisions_or_outcomes_influenced",
+      "affected_persons_description",
+      "technology_description"
+    ]
+  },
+  "fake_llm_responses": {
+    "prohibited_practices": "{\"category\": \"prohibited_practices\", \"state\": \"NO\", \"cited_requirements\": [], \"rationale\": \"Nothing in the facts suggests a prohibited practice.\", \"confidence\": 0.85}",
+    "high_risk": "{\"category\": \"high_risk\", \"state\": \"INSUFFICIENT_INFORMATION\", \"cited_requirements\": [], \"rationale\": \"Sector alone is insufficient to determine Annex III applicability without knowing what decisions the system influences.\", \"confidence\": 0.0}"
+  },
+  "expected_states": {
+    "scope": "INSUFFICIENT_INFORMATION",
+    "prohibited_practices": "NO",
+    "high_risk": "INSUFFICIENT_INFORMATION",
+    "gpai": "INSUFFICIENT_INFORMATION",
+    "transparency": "INSUFFICIENT_INFORMATION"
+  },
+  "notes": "Sector known but decision context missing -- insufficient for high-risk specifically, not for prohibited practices."
+}

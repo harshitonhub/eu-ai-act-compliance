@@ -1,0 +1,24 @@
+{
+  "case_id": "obvious-prohibited-subliminal-yes",
+  "difficulty": "obvious",
+  "as_of": "2026-09-09",
+  "facts": {
+    "system_description": "A mobile game that embeds audio cues below the threshold of conscious perception to push players toward in-app purchases they would not otherwise make; testing shows this causes players significant financial harm.",
+    "intended_purpose": "Increase in-app purchase revenue using subliminal audio manipulation techniques.",
+    "actor_roles": [
+      "provider"
+    ]
+  },
+  "fake_llm_responses": {
+    "prohibited_practices": "{\"category\": \"prohibited_practices\", \"state\": \"YES\", \"cited_requirements\": [{\"requirement_key\": \"EU-AI-ACT-ART5-1-A\", \"citation\": \"Article 5\", \"relevance\": \"Subliminal manipulative technique causing harm.\"}], \"rationale\": \"Subliminal audio technique materially distorts behaviour and causes significant financial harm.\", \"confidence\": 0.85}",
+    "high_risk": "{\"category\": \"high_risk\", \"state\": \"NO\", \"cited_requirements\": [], \"rationale\": \"Mobile game with in-app purchases does not match any retrieved high-risk pathway.\", \"confidence\": 0.85}"
+  },
+  "expected_states": {
+    "scope": "INSUFFICIENT_INFORMATION",
+    "prohibited_practices": "YES",
+    "high_risk": "NO",
+    "gpai": "INSUFFICIENT_INFORMATION",
+    "transparency": "INSUFFICIENT_INFORMATION"
+  },
+  "notes": "Clear-cut Article 5(1)(a) prohibited subliminal manipulation."
+}

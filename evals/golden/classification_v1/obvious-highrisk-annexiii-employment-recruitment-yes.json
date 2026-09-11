@@ -1,0 +1,24 @@
+{
+  "case_id": "obvious-highrisk-annexiii-employment-recruitment-yes",
+  "difficulty": "obvious",
+  "as_of": "2026-09-09",
+  "facts": {
+    "system_description": "An AI tool used by an employer to automatically filter and rank job applications and recommend which candidates should be invited to interview.",
+    "intended_purpose": "Recruitment and candidate screening for job openings.",
+    "actor_roles": [
+      "deployer"
+    ]
+  },
+  "fake_llm_responses": {
+    "prohibited_practices": "{\"category\": \"prohibited_practices\", \"state\": \"NO\", \"cited_requirements\": [], \"rationale\": \"No prohibited practice indicators present.\", \"confidence\": 0.85}",
+    "high_risk": "{\"category\": \"high_risk\", \"state\": \"YES\", \"cited_requirements\": [{\"requirement_key\": \"EU-AI-ACT-ANNEXIII-4\", \"citation\": \"Annex III\", \"relevance\": \"Recruitment or selection of natural persons.\"}], \"rationale\": \"Filtering and ranking job applications matches Annex III point 4(a), recruitment/selection.\", \"confidence\": 0.85}"
+  },
+  "expected_states": {
+    "scope": "INSUFFICIENT_INFORMATION",
+    "prohibited_practices": "NO",
+    "high_risk": "YES",
+    "gpai": "INSUFFICIENT_INFORMATION",
+    "transparency": "INSUFFICIENT_INFORMATION"
+  },
+  "notes": "Clear-cut Annex III point 4(a) recruitment case."
+}

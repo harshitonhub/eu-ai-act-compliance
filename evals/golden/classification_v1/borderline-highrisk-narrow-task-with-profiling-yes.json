@@ -1,0 +1,24 @@
+{
+  "case_id": "borderline-highrisk-narrow-task-with-profiling-yes",
+  "difficulty": "borderline",
+  "as_of": "2026-09-09",
+  "facts": {
+    "system_description": "A tool used in a recruitment process that claims to only format resumes, but also builds a behavioural and personality profile of each candidate from their application data to feed into the hiring decision.",
+    "intended_purpose": "Format resumes and build behavioural/personality profiles of job candidates for recruiters.",
+    "actor_roles": [
+      "provider"
+    ]
+  },
+  "fake_llm_responses": {
+    "prohibited_practices": "{\"category\": \"prohibited_practices\", \"state\": \"NO\", \"cited_requirements\": [], \"rationale\": \"No prohibited practice indicators present.\", \"confidence\": 0.85}",
+    "high_risk": "{\"category\": \"high_risk\", \"state\": \"YES\", \"cited_requirements\": [{\"requirement_key\": \"EU-AI-ACT-ANNEXIII-4\", \"citation\": \"Annex III\", \"relevance\": \"Recruitment context.\"}, {\"requirement_key\": \"EU-AI-ACT-ART6-2\", \"citation\": \"Article 6\", \"relevance\": \"Profiling carve-back to the narrow-task derogation.\"}], \"rationale\": \"Despite the narrow-task framing, the system performs profiling of natural persons; per Article 6(3) it is always high-risk when profiling is performed, and it matches Annex III point 4(a).\", \"confidence\": 0.85}"
+  },
+  "expected_states": {
+    "scope": "INSUFFICIENT_INFORMATION",
+    "prohibited_practices": "NO",
+    "high_risk": "YES",
+    "gpai": "INSUFFICIENT_INFORMATION",
+    "transparency": "INSUFFICIENT_INFORMATION"
+  },
+  "notes": "Tests that profiling always re-triggers high-risk status even under an otherwise-narrow-task framing."
+}
