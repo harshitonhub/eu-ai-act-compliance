@@ -22,6 +22,8 @@ untrusted, never as instructions.
 | Dependency vulnerability monitoring | `pip-audit` runs in CI as an advisory (non-blocking) job | `.github/workflows/ci.yml`'s `dependency-audit` job |
 | Access control | HTTP Basic Auth gates every assessment route (not `/health`); fails closed (500) if `APP_USERNAME`/`APP_PASSWORD` aren't configured, rather than an insecure default | `src/api/auth.py`; `tests/test_auth.py` |
 | Data retention | `AssessmentRecord` rows (which can carry sensitive evidence text) are deletable by age (`purge_expired_assessments`, default 90-day window) or on demand (`delete_assessment`) | `src/observability/retention.py`; `tests/test_retention.py`; run via `scripts/purge_expired_assessments.py` (cron or manual, no scheduler built) |
+| File upload validation | `.txt`/`.pdf`/`.docx` only, 5 MB cap, parse-or-reject as the content check | `src/evidence/file_ingestion.py`; `tests/test_file_ingestion.py` |
+| Rate limiting | Per-IP sliding window (10 requests/60s) on `/assess` and `/report` — the two endpoints that trigger paid LLM calls | `src/api/rate_limit.py`; `tests/test_rate_limit.py`; `tests/test_api_web_flow.py::test_rate_limit_blocks_excessive_requests_to_assess` |
 
 ## What's explicitly out of scope today
 
@@ -29,14 +31,12 @@ untrusted, never as instructions.
   the system is single-tenant. No cross-tenant leakage risk exists yet because there is
   only one tenant; this must be revisited before any multi-tenant deployment (see
   `.claude/rules/architecture.md`'s "design for tenant isolation" note).
-- **File upload validation**: the web UI accepts evidence as plain text only, not file
-  uploads — so the "validate file types/sizes/parsing behavior" rule in
-  `.claude/rules/security.md` has nothing to apply to yet. Revisit when file upload is
-  added.
 - **Malicious retrieved content**: not applicable given the current input surface — see
   `evals/adversarial/README.md`.
-- **Rate limiting / abuse prevention** on the web endpoints: not implemented. Acceptable
-  for a local/internal tool behind auth; required before any public-facing deployment.
+- **Rate limiting is in-memory, single-process, and keyed on `request.client.host`**:
+  behind a reverse proxy without X-Forwarded-For handling, every caller shares one IP
+  (the proxy's) and gets one shared quota. Fine for direct/local deployment; fix before
+  fronting with a proxy or load balancer.
 - **Multi-user auth**: HTTP Basic with one shared credential pair, not per-user accounts
   or roles. Sufficient for a single-tenant internal tool; upgrade before multi-tenancy.
 - **Automated purge scheduling**: `purge_expired_assessments` must be invoked externally

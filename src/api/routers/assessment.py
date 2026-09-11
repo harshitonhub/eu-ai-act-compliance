@@ -14,6 +14,7 @@ from schemas.classification import ClassificationResult
 from schemas.enums import ActorRole
 from schemas.facts import ExtractedFacts
 from src.api.dependencies import get_llm_client
+from src.api.rate_limit import rate_limit
 from src.classification.classify import classify_system
 from src.evidence.assess import assess_all_obligations
 from src.evidence.file_ingestion import FileValidationError, extract_evidence_text
@@ -56,6 +57,7 @@ def submit_assessment(
     as_of: str = Form(...),
     session: Session = Depends(get_session),
     llm_client: LLMClient = Depends(get_llm_client),
+    _rate_limit: None = Depends(rate_limit),
 ) -> HTMLResponse:
     facts = ExtractedFacts(
         system_description=system_description,
@@ -108,6 +110,7 @@ async def generate_report(
     request: Request,
     session: Session = Depends(get_session),
     llm_client: LLMClient = Depends(get_llm_client),
+    _rate_limit: None = Depends(rate_limit),
 ) -> HTMLResponse:
     form = await request.form()
 

@@ -18,6 +18,7 @@ from sqlalchemy.pool import StaticPool
 
 from src.api.dependencies import get_llm_client
 from src.api.main import app
+from src.api.rate_limit import rate_limiter
 from src.legal.ingest import ingest_seed
 from src.llm.fake_client import FakeCompletionProvider
 from src.llm.interface import LLMClient
@@ -56,6 +57,7 @@ class _FakeLLMHolder:
 def web_client(monkeypatch):
     monkeypatch.setenv("APP_USERNAME", "test-user")
     monkeypatch.setenv("APP_PASSWORD", "test-password")
+    rate_limiter.reset()  # each test gets a fresh rate-limit window, not the module-shared one
 
     engine = create_engine(
         "sqlite:///:memory:", connect_args={"check_same_thread": False}, poolclass=StaticPool
@@ -296,3 +298,28 @@ def test_no_high_risk_no_prohibited_yields_no_obligations_and_no_review(web_clie
     # should always be flagged, not silently treated as "clean."
     assert "insufficient_information" in report_response.text
     assert "No review flags raised" not in report_response.text
+
+
+def test_rate_limit_blocks_excessive_requests_to_assess(web_client, monkeypatch):
+    client, holder, _engine = web_client
+    monkeypatch.setattr(rate_limiter, "max_requests", 2)
+
+    payload = {
+        "system_description": "A customer service chatbot for order status inquiries.",
+        "intended_purpose": "Automate routine customer support.",
+        "actor_role": "",
+        "sector": "",
+        "as_of": "2026-09-09",
+    }
+    holder.responses = [
+        '{"category": "prohibited_practices", "state": "NO", "cited_requirements": [], "rationale": "x", "confidence": 0.9}',
+        '{"category": "high_risk", "state": "NO", "cited_requirements": [], "rationale": "x", "confidence": 0.9}',
+    ] * 2
+
+    first = client.post("/assess", data=payload)
+    second = client.post("/assess", data=payload)
+    third = client.post("/assess", data=payload)
+
+    assert first.status_code == 200
+    assert second.status_code == 200
+    assert third.status_code == 429
