@@ -2,28 +2,230 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>{% block title %}EU AI Act Compliance{% endblock %}</title>
   <script src="https://unpkg.com/htmx.org@2.0.3"></script>
   <style>
-    body { font-family: system-ui, sans-serif; max-width: 760px; margin: 2rem auto; padding: 0 1rem; color: #1a1a1a; }
-    label { display: block; margin-top: 1rem; font-weight: 600; }
-    input, textarea, select { width: 100%; padding: 0.5rem; margin-top: 0.25rem; box-sizing: border-box; font-family: inherit; }
-    textarea { min-height: 5rem; }
-    button { margin-top: 1.5rem; padding: 0.6rem 1.2rem; cursor: pointer; }
-    table { border-collapse: collapse; width: 100%; margin-top: 0.5rem; }
-    th, td { border: 1px solid #ccc; padding: 0.5rem; text-align: left; vertical-align: top; }
-    .state-YES, .status-NON_COMPLIANT { color: #b00020; font-weight: 600; }
-    .state-POSSIBLY, .status-PARTIALLY_COMPLIANT, .status-INSUFFICIENT_EVIDENCE { color: #a06800; font-weight: 600; }
-    .state-NO, .status-COMPLIANT { color: #1a7a1a; }
-    .state-INSUFFICIENT_INFORMATION, .state-NOT_APPLICABLE { color: #555; font-style: italic; }
-    .flag { background: #fff3cd; border: 1px solid #ffe08a; padding: 0.5rem 0.75rem; margin: 0.4rem 0; border-radius: 4px; }
-    .obligation-block { border: 1px solid #ddd; padding: 1rem; margin-top: 1rem; border-radius: 4px; }
-    .citation { color: #555; font-size: 0.9em; }
-    fieldset { border: 1px solid #ddd; margin-top: 1rem; }
+    :root {
+      --bg: #f7f8fa;
+      --surface: #ffffff;
+      --border: #e2e5ea;
+      --text: #1a1d23;
+      --text-muted: #667085;
+      --accent: #4338ca;
+      --accent-hover: #3730a3;
+      --accent-soft: #eef0fd;
+      --green-bg: #e8f7ee; --green-text: #067647; --green-border: #abefc6;
+      --amber-bg: #fff6e5; --amber-text: #b25e09; --amber-border: #fedf89;
+      --red-bg: #fef1f1; --red-text: #b42318; --red-border: #fecdca;
+      --gray-bg: #f2f4f7; --gray-text: #475467; --gray-border: #e4e7ec;
+      --radius: 10px;
+      --shadow: 0 1px 2px rgba(16, 24, 40, 0.05);
+    }
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg: #0f1115;
+        --surface: #171a21;
+        --border: #2a2e37;
+        --text: #e7e9ee;
+        --text-muted: #9aa1b0;
+        --accent: #818cf8;
+        --accent-hover: #a5b0fb;
+        --accent-soft: #1e2036;
+        --green-bg: #0e2a1c; --green-text: #4ade80; --green-border: #14532d;
+        --amber-bg: #2c210a; --amber-text: #fbbf24; --amber-border: #4d3a0f;
+        --red-bg: #2c1414; --red-text: #f87171; --red-border: #4d1f1f;
+        --gray-bg: #1e2129; --gray-text: #9aa1b0; --gray-border: #2a2e37;
+      }
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      font-family: -apple-system, "Segoe UI", system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      margin: 0;
+      line-height: 1.5;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    header {
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      padding: 1rem 1.5rem;
+    }
+    header a {
+      font-weight: 700;
+      font-size: 1.1rem;
+      text-decoration: none;
+      color: var(--text);
+    }
+    header a::before {
+      content: "⚖";
+      margin-right: 0.5rem;
+    }
+
+    main {
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 2rem 1.5rem 4rem;
+    }
+
+    h2 {
+      font-size: 1.3rem;
+      margin: 2rem 0 0.75rem;
+    }
+    h2:first-child { margin-top: 0; }
+    h3 {
+      font-size: 1.05rem;
+      margin: 1.75rem 0 0.5rem;
+      color: var(--text);
+    }
+    p { color: var(--text); }
+    .hint { color: var(--text-muted); font-size: 0.9rem; }
+    code {
+      background: var(--gray-bg);
+      padding: 0.15rem 0.4rem;
+      border-radius: 4px;
+      font-size: 0.85em;
+    }
+
+    form {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1.5rem;
+      box-shadow: var(--shadow);
+    }
+    label {
+      display: block;
+      margin-top: 1.1rem;
+      font-weight: 600;
+      font-size: 0.9rem;
+      color: var(--text);
+    }
+    label:first-child { margin-top: 0; }
+    input, textarea, select {
+      width: 100%;
+      padding: 0.55rem 0.7rem;
+      margin-top: 0.4rem;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      font-family: inherit;
+      font-size: 0.95rem;
+      background: var(--surface);
+      color: var(--text);
+    }
+    input:focus, textarea:focus, select:focus {
+      outline: none;
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px var(--accent-soft);
+    }
+    textarea { min-height: 5rem; resize: vertical; }
+    input[type=file] { padding: 0.4rem; cursor: pointer; }
+
+    button {
+      margin-top: 1.5rem;
+      padding: 0.65rem 1.4rem;
+      cursor: pointer;
+      background: var(--accent);
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      font-size: 0.95rem;
+      font-weight: 600;
+      transition: background 0.15s ease;
+    }
+    button:hover { background: var(--accent-hover); }
+
+    table {
+      border-collapse: collapse;
+      width: 100%;
+      margin-top: 0.5rem;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow: hidden;
+      box-shadow: var(--shadow);
+    }
+    th, td {
+      padding: 0.65rem 0.85rem;
+      text-align: left;
+      vertical-align: top;
+      border-bottom: 1px solid var(--border);
+      font-size: 0.9rem;
+    }
+    th {
+      background: var(--gray-bg);
+      color: var(--gray-text);
+      font-size: 0.78rem;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      font-weight: 600;
+    }
+    tr:last-child td { border-bottom: none; }
+
+    /* Status/state pill badges */
+    .state-YES, .state-POSSIBLY, .state-NO, .state-INSUFFICIENT_INFORMATION, .state-NOT_APPLICABLE,
+    .status-COMPLIANT, .status-PARTIALLY_COMPLIANT, .status-INSUFFICIENT_EVIDENCE, .status-NON_COMPLIANT {
+      display: inline-block;
+      padding: 0.2rem 0.6rem;
+      border-radius: 999px;
+      font-size: 0.78rem;
+      font-weight: 600;
+      border: 1px solid transparent;
+      white-space: nowrap;
+    }
+    .state-YES, .status-NON_COMPLIANT {
+      background: var(--red-bg); color: var(--red-text); border-color: var(--red-border);
+    }
+    .state-POSSIBLY, .status-PARTIALLY_COMPLIANT, .status-INSUFFICIENT_EVIDENCE {
+      background: var(--amber-bg); color: var(--amber-text); border-color: var(--amber-border);
+    }
+    .state-NO, .status-COMPLIANT {
+      background: var(--green-bg); color: var(--green-text); border-color: var(--green-border);
+    }
+    .state-INSUFFICIENT_INFORMATION, .state-NOT_APPLICABLE {
+      background: var(--gray-bg); color: var(--gray-text); border-color: var(--gray-border); font-style: normal;
+    }
+
+    .flag {
+      background: var(--amber-bg);
+      border: 1px solid var(--amber-border);
+      color: var(--amber-text);
+      padding: 0.6rem 0.9rem;
+      margin: 0.5rem 0;
+      border-radius: 8px;
+      font-size: 0.9rem;
+    }
+    .flag strong { color: inherit; }
+
+    .obligation-block {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      padding: 1.1rem 1.25rem;
+      margin-top: 1rem;
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+    }
+    .obligation-block > strong { font-size: 0.95rem; }
+    .obligation-block > p { margin: 0.4rem 0 0.8rem; font-size: 0.9rem; }
+
+    .citation {
+      color: var(--text-muted);
+      font-size: 0.85em;
+    }
+
+    ul { padding-left: 1.2rem; }
+    li { margin-bottom: 0.4rem; color: var(--text); }
+
+    a { color: var(--accent); }
   </style>
 </head>
 <body hx-boost="true">
-  <h1><a href="/" style="text-decoration:none; color:inherit;">EU AI Act Compliance</a></h1>
-  {% block content %}{% endblock %}
+  <header><a href="/">EU AI Act Compliance</a></header>
+  <main>
+    {% block content %}{% endblock %}
+  </main>
 </body>
 </html>
