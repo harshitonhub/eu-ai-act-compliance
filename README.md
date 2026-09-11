@@ -11,6 +11,13 @@ around one hard rule — deterministic code decides facts, dates, and business r
 LLM is only used where genuine interpretation is required, and even then its output is
 schema-validated and fails closed on doubt.
 
+**Open source and self-hostable.** The commercial AI-governance platforms covering the
+EU AI Act (Credo AI, Holistic AI, OneTrust AI Governance) are closed-source,
+custom-quoted enterprise sales (commonly $30K-150K+/year, no free or self-serve tier) —
+out of reach for the SMEs the Act itself estimates spend €50K-500K just on per-system
+compliance. This is MIT-licensed and runs on your own infrastructure with your own
+Anthropic key.
+
 ## Pipeline
 
 ```
@@ -75,13 +82,15 @@ the Regulation's ~180 articles are not yet ingested — the pipeline correctly r
 ```
 uv sync --frozen --extra dev
 uv run alembic upgrade head
+uv run python scripts/seed_legal_corpus.py
 APP_USERNAME=<user> APP_PASSWORD=<password> ANTHROPIC_API_KEY=<key> uv run uvicorn src.api.main:app --reload
 ```
 
 `APP_USERNAME`/`APP_PASSWORD` gate every assessment route via HTTP Basic Auth; the
 server refuses to serve without them. `ANTHROPIC_API_KEY` is read by the `anthropic`
 SDK directly — omit it to fail fast at classification time rather than starting with a
-broken LLM client.
+broken LLM client. `/assess` and `/report` are rate-limited (10 requests/60s per IP) —
+see `docs/security-model.md`.
 
 Run `python scripts/purge_expired_assessments.py` periodically (e.g. via cron) to
 enforce the assessment data retention window (default 90 days).
@@ -92,6 +101,10 @@ enforce the assessment data retention window (default 90 days).
 uv run pytest
 ```
 
-126 tests: unit/integration tests per module, 16 classification + 8 evidence golden
+132 tests: unit/integration tests per module, 16 classification + 8 evidence golden
 cases, and the adversarial suite — all offline via a fake LLM provider, so CI never
 needs a live API key. See `evals/README.md` for what these suites do and don't prove.
+
+## License
+
+MIT — see `LICENSE`.
