@@ -1,14 +1,26 @@
 {% extends "base.html" %}
 {% block title %}Classification Result — EU AI Act Compliance{% endblock %}
 {% block content %}
+<span class="step">Step 2 of 3 — Review classification and provide evidence</span>
 <h2>Classification</h2>
 <table>
   <tr><th>Category</th><th>State</th><th>Citations</th><th>Rationale</th></tr>
   {% for a in classification.assessments %}
   <tr>
     <td>{{ a.category.value }}</td>
-    <td class="state-{{ a.state.value }}">{{ a.state.value }}</td>
-    <td>{% for c in a.cited_requirements %}<span class="citation">{{ c.requirement_key }} ({{ c.citation }})</span><br>{% endfor %}</td>
+    <td>
+      <span class="state-{{ a.state.value }}">{{ a.state.value }}</span>
+      <span class="confidence">{{ (a.confidence * 100) | round | int }}% confidence</span>
+      <span class="explanation">{{ STATE_EXPLANATIONS[a.state.value] }}</span>
+    </td>
+    <td>
+      {% for c in a.cited_requirements %}
+      <details class="citation-detail">
+        <summary>{{ c.requirement_key }} ({{ c.citation }})</summary>
+        <pre>{{ citation_texts.get(c.requirement_key, "Full text unavailable.") }}</pre>
+      </details>
+      {% endfor %}
+    </td>
     <td>{{ a.rationale }}</td>
   </tr>
   {% endfor %}
@@ -37,7 +49,7 @@ file types: .txt, .pdf, .docx, up to 5&nbsp;MB.</p>
   </div>
   {% endfor %}
 
-  <button type="submit">Assess evidence and generate report</button>
+  <button type="submit">Assess evidence and generate report <span class="htmx-indicator">…</span></button>
 </form>
 {% else %}
 <p>No obligations triggered by this classification.</p>
@@ -46,7 +58,7 @@ file types: .txt, .pdf, .docx, up to 5&nbsp;MB.</p>
   <input type="hidden" name="classification_json" value='{{ classification_json }}'>
   <input type="hidden" name="classification_llm_calls_json" value='{{ classification_llm_calls_json }}'>
   <input type="hidden" name="as_of" value="{{ as_of }}">
-  <button type="submit">Generate report</button>
+  <button type="submit">Generate report <span class="htmx-indicator">…</span></button>
 </form>
 {% endif %}
 {% endblock %}

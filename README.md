@@ -49,9 +49,13 @@ Every stage is a separate, independently-tested module — see `docs/architectur
   `NOT_APPLICABLE` are distinct, deliberately-used states — including a genuine
   distinction between "we don't have enough facts" and "this legal requirement isn't in
   force yet as of this date," which are different things.
-- **Every assessment is reconstructable.** Facts, classification, obligations,
-  evidence, LLM call metadata (model, prompt version, tokens, latency), and errors are
-  all persisted — see `src/observability/`.
+- **Every assessment is reconstructable — and browsable.** Facts, classification,
+  obligations, evidence, LLM call metadata (model, prompt version, tokens, latency), and
+  errors are all persisted (`src/observability/`) and viewable later at a permanent
+  `/assessments/<id>` URL, with a `/history` page listing every past run.
+- **Citations link to the actual verbatim law**, not a bare code. Click a citation
+  in the UI and the exact quoted Article/Annex text is right there — the same text
+  ingested from EUR-Lex, not a paraphrase.
 - **It's been adversarially tested**, not just happy-path tested: prompt injection,
   forced-binary pressure, conflicting actor roles, citation-bypass attempts, and
   outdated/superseded legal sources all have dedicated tests. See
@@ -101,7 +105,7 @@ enforce the assessment data retention window (default 90 days).
 uv run pytest
 ```
 
-132 tests: unit/integration tests per module, 16 classification + 8 evidence golden
+136 tests: unit/integration tests per module, 16 classification + 8 evidence golden
 cases, and the adversarial suite — all offline via a fake LLM provider, so CI never
 needs a live API key. See `evals/README.md` for what these suites do and don't prove.
 

@@ -1,6 +1,7 @@
 {% extends "base.html" %}
 {% block title %}Compliance Report — EU AI Act Compliance{% endblock %}
 {% block content %}
+<span class="step">Step 3 of 3 — Compliance report</span>
 <h2>Compliance report</h2>
 <p><strong>Assessment ID:</strong> <code>{{ assessment_id }}</code></p>
 <p><strong>System:</strong> {{ report.facts.system_description }}</p>
@@ -20,8 +21,19 @@
   {% for a in report.classification.assessments %}
   <tr>
     <td>{{ a.category.value }}</td>
-    <td class="state-{{ a.state.value }}">{{ a.state.value }}</td>
-    <td>{% for c in a.cited_requirements %}{{ c.requirement_key }}<br>{% endfor %}</td>
+    <td>
+      <span class="state-{{ a.state.value }}">{{ a.state.value }}</span>
+      <span class="confidence">{{ (a.confidence * 100) | round | int }}% confidence</span>
+      <span class="explanation">{{ STATE_EXPLANATIONS[a.state.value] }}</span>
+    </td>
+    <td>
+      {% for c in a.cited_requirements %}
+      <details class="citation-detail">
+        <summary>{{ c.requirement_key }} ({{ c.citation }})</summary>
+        <pre>{{ citation_texts.get(c.requirement_key, "Full text unavailable.") }}</pre>
+      </details>
+      {% endfor %}
+    </td>
   </tr>
   {% endfor %}
 </table>
@@ -69,5 +81,5 @@
 <p>No review flags raised.</p>
 {% endif %}
 
-<p><a href="/">Start a new assessment</a></p>
+<p><a href="/">Start a new assessment</a> · <a href="/history">View all assessments</a></p>
 {% endblock %}

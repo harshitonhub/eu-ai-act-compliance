@@ -16,6 +16,7 @@ import json
 from dataclasses import dataclass
 from datetime import date, datetime
 
+from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from schemas.classification import ClassificationResult
@@ -36,6 +37,16 @@ from src.observability.serialization import (
 from src.obligations.mapping import Obligation
 from src.persistence.models import AssessmentRecord
 from src.review.triggers import ReviewFlag
+
+
+@dataclass(frozen=True)
+class AssessmentSummary:
+    assessment_id: str
+    created_at: datetime
+    as_of: date
+    system_description: str
+    requires_human_review: bool
+    error: str | None
 
 
 @dataclass(frozen=True)
@@ -116,3 +127,22 @@ def reconstruct_assessment(session: Session, assessment_id: str) -> Reconstructe
         total_latency_ms=record.total_latency_ms,
         error=record.error,
     )
+
+
+def list_recent_assessments(session: Session, *, limit: int = 50) -> list[AssessmentSummary]:
+    """Lightweight summaries for a history/dashboard view -- avoids fully deserializing
+    every nested object (obligations, evidence, LLM calls) just to render a list.
+    """
+    stmt = select(AssessmentRecord).order_by(AssessmentRecord.created_at.desc()).limit(limit)
+    records = session.scalars(stmt).all()
+    return [
+        AssessmentSummary(
+            assessment_id=record.id,
+            created_at=record.created_at,
+            as_of=record.as_of,
+            system_description=ExtractedFacts.model_validate_json(record.facts_json).system_description,
+            requires_human_review=bool(json.loads(record.review_flags_json)),
+            error=record.error,
+        )
+        for record in records
+    ]

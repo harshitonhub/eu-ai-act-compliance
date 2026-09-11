@@ -4,7 +4,7 @@ data alone.
 
 from datetime import date, datetime, timezone
 
-from src.observability.assessment_log import record_assessment, reconstruct_assessment
+from src.observability.assessment_log import list_recent_assessments, record_assessment, reconstruct_assessment
 from src.observability.instrumented_client import LLMCallRecord
 from src.gaps.compute import Gap
 from src.obligations.mapping import Obligation
@@ -125,3 +125,34 @@ def test_record_assessment_with_error_is_reconstructable(session):
 
     assert reconstructed.error == "Anthropic API timeout after 30s."
     assert reconstructed.total_input_tokens == 0
+
+
+def test_list_recent_assessments_orders_newest_first(session):
+    older_id = record_assessment(
+        session, as_of=date(2026, 1, 1), legal_knowledge_source_key="eu_ai_act_2024_1689",
+        facts=FACTS, classification=CLASSIFICATION, obligations=[], evidence_assessments=[],
+        gaps=[], review_flags=[], llm_calls=[],
+    )
+    newer_id = record_assessment(
+        session, as_of=date(2026, 2, 1), legal_knowledge_source_key="eu_ai_act_2024_1689",
+        facts=FACTS, classification=CLASSIFICATION, obligations=[], evidence_assessments=[],
+        gaps=[], review_flags=[ReviewFlag(ReviewTrigger.HIGH_IMPACT_HIGH_RISK, "fixture")], llm_calls=[],
+    )
+
+    summaries = list_recent_assessments(session)
+
+    assert [s.assessment_id for s in summaries][:2] == [newer_id, older_id]
+    assert summaries[0].system_description == FACTS.system_description
+    assert summaries[0].requires_human_review is True
+    assert summaries[1].requires_human_review is False
+
+
+def test_list_recent_assessments_respects_limit(session):
+    for _ in range(3):
+        record_assessment(
+            session, as_of=date(2026, 1, 1), legal_knowledge_source_key="eu_ai_act_2024_1689",
+            facts=FACTS, classification=CLASSIFICATION, obligations=[], evidence_assessments=[],
+            gaps=[], review_flags=[], llm_calls=[],
+        )
+
+    assert len(list_recent_assessments(session, limit=2)) == 2

@@ -220,10 +220,67 @@
     li { margin-bottom: 0.4rem; color: var(--text); }
 
     a { color: var(--accent); }
+
+    .step {
+      display: inline-block;
+      font-size: 0.78rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      margin-bottom: 0.5rem;
+    }
+
+    .confidence {
+      color: var(--text-muted);
+      font-size: 0.8em;
+      margin-left: 0.35rem;
+    }
+    .explanation {
+      display: block;
+      color: var(--text-muted);
+      font-size: 0.8rem;
+      margin-top: 0.2rem;
+    }
+
+    details.citation-detail {
+      margin-top: 0.3rem;
+    }
+    details.citation-detail summary {
+      cursor: pointer;
+      color: var(--accent);
+      font-size: 0.85em;
+    }
+    details.citation-detail pre {
+      white-space: pre-wrap;
+      background: var(--gray-bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 0.75rem;
+      margin-top: 0.4rem;
+      font-size: 0.82rem;
+      font-family: inherit;
+      color: var(--text);
+      max-height: 240px;
+      overflow-y: auto;
+    }
+
+    .htmx-indicator { opacity: 0; transition: opacity 0.15s ease; }
+    .htmx-request .htmx-indicator { opacity: 1; }
+    .htmx-request.htmx-indicator { opacity: 1; }
+    button .htmx-indicator { margin-left: 0.5rem; }
+
+    nav { margin-left: auto; }
+    header { display: flex; align-items: center; }
+    header nav a { font-weight: 500; font-size: 0.9rem; color: var(--text-muted); margin-left: 1.25rem; }
+    header nav a:hover { color: var(--accent); }
   </style>
 </head>
 <body hx-boost="true">
-  <header><a href="/">EU AI Act Compliance</a></header>
+  <header>
+    <a href="/">EU AI Act Compliance</a>
+    <nav><a href="/history">History</a></nav>
+  </header>
   <main>
     {% block content %}{% endblock %}
   </main>

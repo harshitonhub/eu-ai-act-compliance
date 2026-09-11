@@ -1,7 +1,8 @@
 {% extends "base.html" %}
 {% block title %}New Assessment — EU AI Act Compliance{% endblock %}
 {% block content %}
-<p class="hint">Describe the AI system. Assessed against the ingested EU AI Act seed corpus
+<span class="step">Step 1 of 3 — Describe the system</span>
+<p class="hint">Assessed against the ingested EU AI Act seed corpus
 (Article 5, Article 6, Annex III, Articles 9-15 — see <code>docs/legal-methodology.md</code>).</p>
 
 {% if error %}<p class="flag">{{ error }}</p>{% endif %}
@@ -27,6 +28,6 @@
   <label for="as_of">Assessment date</label>
   <input id="as_of" name="as_of" type="date" value="{{ as_of }}" required>
 
-  <button type="submit">Classify</button>
+  <button type="submit">Classify <span class="htmx-indicator">…</span></button>
 </form>
 {% endblock %}

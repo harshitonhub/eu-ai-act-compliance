@@ -4,14 +4,14 @@ import json
 from datetime import date
 from pathlib import Path
 
-from fastapi import APIRouter, Depends, Form, Request
+from fastapi import APIRouter, Depends, Form, HTTPException, Request
 from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
 from sqlalchemy.orm import Session
 from starlette.datastructures import UploadFile
 
 from schemas.classification import ClassificationResult
-from schemas.enums import ActorRole
+from schemas.enums import ActorRole, ClassificationState
 from schemas.facts import ExtractedFacts
 from src.api.dependencies import get_llm_client
 from src.api.rate_limit import rate_limit
@@ -19,9 +19,10 @@ from src.classification.classify import classify_system
 from src.evidence.assess import assess_all_obligations
 from src.evidence.file_ingestion import FileValidationError, extract_evidence_text
 from src.gaps.compute import compute_gaps
+from src.legal.queries import find_requirement_by_key
 from src.llm import LLMClient
 from src.obligations.mapping import Obligation, map_obligations
-from src.observability.assessment_log import record_assessment
+from src.observability.assessment_log import list_recent_assessments, record_assessment, reconstruct_assessment
 from src.observability.instrumented_client import InstrumentedLLMClient
 from src.observability.serialization import llm_call_record_from_dict, llm_call_record_to_dict
 from src.persistence.db import get_session
@@ -33,9 +34,32 @@ router = APIRouter()
 TEMPLATES_DIR = Path(__file__).resolve().parents[2] / "web" / "templates"
 templates = Jinja2Templates(directory=str(TEMPLATES_DIR))
 
+# Plain-language gloss for each classification state -- purely presentational copy,
+# not a new legal conclusion, so it lives in the web layer, not schemas/classification.py.
+templates.env.globals["STATE_EXPLANATIONS"] = {
+    ClassificationState.YES.value: "Applies.",
+    ClassificationState.NO.value: "Does not apply.",
+    ClassificationState.POSSIBLY.value: "Uncertain — human review recommended.",
+    ClassificationState.INSUFFICIENT_INFORMATION.value: "Not enough information was provided to determine this.",
+    ClassificationState.NOT_APPLICABLE.value: "This requirement isn't in force yet as of the assessment date.",
+}
+
 EVIDENCE_FIELD_PREFIX = "evidence__"
 EVIDENCE_FILE_FIELD_PREFIX = "evidence_file__"
 LEGAL_KNOWLEDGE_SOURCE_KEY = "eu_ai_act_2024_1689"  # the only source ingested so far -- see docs/legal-methodology.md
+
+
+def _citation_texts_for(session: Session, classification: ClassificationResult) -> dict[str, str]:
+    """requirement_key -> verbatim provision text, for every citation in a result.
+    Lets the UI show the actual quoted law next to a citation instead of a bare code.
+    """
+    keys = {c.requirement_key for a in classification.assessments for c in a.cited_requirements}
+    texts = {}
+    for key in keys:
+        result = find_requirement_by_key(session, key)
+        if result is not None:
+            texts[key] = result.provision_text
+    return texts
 
 
 @router.get("/", response_class=HTMLResponse)
@@ -83,7 +107,10 @@ def submit_assessment(
                 "intended_purpose": intended_purpose,
                 "actor_role": actor_role,
                 "sector": sector,
-                "error": f"Classification failed: {exc}",
+                "error": (
+                    "Something went wrong while classifying this system. "
+                    f"Technical detail: {exc}"
+                ),
             },
         )
 
@@ -95,6 +122,7 @@ def submit_assessment(
         {
             "classification": classification,
             "obligations": obligations,
+            "citation_texts": _citation_texts_for(session, classification),
             "facts_json": facts.model_dump_json(),
             "classification_json": classification.model_dump_json(),
             "classification_llm_calls_json": json.dumps(
@@ -149,7 +177,7 @@ async def generate_report(
         gaps = compute_gaps(obligations, evidence_assessments)
         review_flags = determine_review_flags(classification, evidence_assessments)
     except Exception as exc:  # noqa: BLE001 -- recorded, then re-raised as a 500
-        error = f"Evidence assessment failed: {exc}"
+        error = f"Something went wrong while assessing evidence. Technical detail: {exc}"
         evidence_assessments, gaps, review_flags = [], [], []
         record_assessment(
             session,
@@ -182,5 +210,48 @@ async def generate_report(
     report = build_report(facts, as_of_date, classification, obligations, evidence_assessments, gaps, review_flags)
 
     return templates.TemplateResponse(
-        request, "report.html", {"report": report, "assessment_id": assessment_id, "file_errors": file_errors}
+        request,
+        "report.html",
+        {
+            "report": report,
+            "assessment_id": assessment_id,
+            "file_errors": file_errors,
+            "citation_texts": _citation_texts_for(session, classification),
+        },
+    )
+
+
+@router.get("/history", response_class=HTMLResponse)
+def show_history(request: Request, session: Session = Depends(get_session)) -> HTMLResponse:
+    assessments = list_recent_assessments(session)
+    return templates.TemplateResponse(request, "history.html", {"assessments": assessments})
+
+
+@router.get("/assessments/{assessment_id}", response_class=HTMLResponse)
+def show_past_assessment(
+    assessment_id: str, request: Request, session: Session = Depends(get_session)
+) -> HTMLResponse:
+    reconstructed = reconstruct_assessment(session, assessment_id)
+    if reconstructed is None:
+        raise HTTPException(status_code=404, detail="Assessment not found.")
+
+    report = build_report(
+        reconstructed.facts,
+        reconstructed.as_of,
+        reconstructed.classification,
+        reconstructed.obligations,
+        reconstructed.evidence_assessments,
+        reconstructed.gaps,
+        reconstructed.review_flags,
+    )
+
+    return templates.TemplateResponse(
+        request,
+        "report.html",
+        {
+            "report": report,
+            "assessment_id": reconstructed.assessment_id,
+            "file_errors": [],
+            "citation_texts": _citation_texts_for(session, reconstructed.classification),
+        },
     )

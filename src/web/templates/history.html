@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% block title %}Assessment History — EU AI Act Compliance{% endblock %}
+{% block content %}
+<h2>Assessment history</h2>
+
+{% if assessments %}
+<table>
+  <tr><th>Date</th><th>System</th><th>Review</th><th></th></tr>
+  {% for a in assessments %}
+  <tr>
+    <td>{{ a.created_at.strftime("%Y-%m-%d %H:%M") }}</td>
+    <td>{{ a.system_description[:80] }}{% if a.system_description|length > 80 %}…{% endif %}</td>
+    <td>
+      {% if a.error %}
+      <span class="status-NON_COMPLIANT">Failed</span>
+      {% elif a.requires_human_review %}
+      <span class="status-PARTIALLY_COMPLIANT">Review needed</span>
+      {% else %}
+      <span class="status-COMPLIANT">Clean</span>
+      {% endif %}
+    </td>
+    <td><a href="/assessments/{{ a.assessment_id }}">View report</a></td>
+  </tr>
+  {% endfor %}
+</table>
+{% else %}
+<p class="hint">No assessments yet. <a href="/">Start one</a>.</p>
+{% endif %}
+{% endblock %}

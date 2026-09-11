@@ -323,3 +323,57 @@ def test_rate_limit_blocks_excessive_requests_to_assess(web_client, monkeypatch)
     assert first.status_code == 200
     assert second.status_code == 200
     assert third.status_code == 429
+
+
+def test_history_lists_past_assessments_and_links_to_report(web_client):
+    client, holder, _engine = web_client
+
+    assert "No assessments yet" in client.get("/history").text
+
+    holder.responses = list(HIGH_RISK_CLASSIFICATION_RESPONSES)
+    assess_response = client.post(
+        "/assess",
+        data={
+            "system_description": "An AI tool that screens and ranks job applicant resumes for an employer.",
+            "intended_purpose": "Recruitment and candidate evaluation for employers.",
+            "actor_role": "deployer",
+            "sector": "",
+            "as_of": "2026-09-09",
+        },
+    )
+    facts_json = _extract_hidden_value("facts_json", assess_response.text)
+    classification_json = _extract_hidden_value("classification_json", assess_response.text)
+    classification_llm_calls_json = _extract_hidden_value("classification_llm_calls_json", assess_response.text)
+    as_of_value = _extract_hidden_value("as_of", assess_response.text)
+
+    holder.responses = []
+    client.post(
+        "/report",
+        data={
+            "facts_json": facts_json,
+            "classification_json": classification_json,
+            "classification_llm_calls_json": classification_llm_calls_json,
+            "as_of": as_of_value,
+        },
+    )
+
+    history_html = client.get("/history").text
+    assert "recruitment" in history_html.lower() or "job applicant" in history_html.lower()
+    assert "Review needed" in history_html  # high_risk=YES triggers a review flag
+
+    link_match = re.search(r'/assessments/([\w-]+)', history_html)
+    assert link_match, "no assessment link found in history page"
+    assessment_id = link_match.group(1)
+
+    past_report = client.get(f"/assessments/{assessment_id}")
+    assert past_report.status_code == 200
+    assert "Compliance report" in past_report.text
+    assert "EU-AI-ACT-ANNEXIII-4" in past_report.text
+
+
+def test_view_unknown_assessment_returns_404(web_client):
+    client, _holder, _engine = web_client
+
+    response = client.get("/assessments/does-not-exist")
+
+    assert response.status_code == 404
