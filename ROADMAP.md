@@ -97,23 +97,68 @@ in this roadmap — everything else is additive; this touches auth on every rout
 into a lightweight task: assigned owner, status (open/in-progress/done). Requires
 persisting gaps as rows, not just computing them on the fly per report.
 
-## Phase I — "Am I affected?" scope quiz (S)
+## Phase I — "Am I affected?" scope quiz (S) — **partially delivered**
 **Independent.** A 5-question, no-login entry point before the full assessment form —
 thin wrapper around existing scope/prohibited-practice logic. Lowers the barrier for
 the 78% of orgs (per the research) who haven't started because they don't know where
 they stand.
 
-## Phase J — NIST AI RMF corpus (M)
-**Independent.** NIST AI RMF is US public domain — can be verbatim-ingested the same
-way Article 5/6/9-15 were. **ISO 42001 cannot be done this way — its text is
-copyrighted/paywalled**, unlike EUR-Lex or NIST. An ISO 42001 layer would have to
-reference clause *numbers* only, never quote the standard, which is weaker than this
-system's citation-enforcement story. Do NIST first; treat ISO 42001 as a separate,
-lower-confidence follow-up if pursued at all.
+`/ai-risk-check` (built) covers the "no-login, near-zero-friction entry" need with a
+single free-text question instead of a 5-question quiz — smaller scope than originally
+planned here, but shipped. A structured multi-question quiz is still a reasonable
+follow-up if the single-question version proves too open-ended for some users.
+
+## Multi-framework scope: public-domain only
+
+Decision (see conversation, not re-litigated here): extend to GDPR, NIST AI RMF, and
+NIST CSF — all public-domain government/EU text, verbatim-ingestible the same way
+Article 5/6/9-15 were. Explicitly **not** ISO 27001, ISO 42001, or SOC 2's AICPA Trust
+Services Criteria — those are copyrighted/paywalled; a layer for them could only
+reference clause *numbers*, never quote the actual standard, which is a materially
+weaker, different kind of feature than everything else in this system. Skipped, not
+deferred — revisit only if someone is willing to pay for the licenses (real recurring
+cost, conflicts with the low-cost goal).
+
+The three approved frameworks aren't architecturally identical, so they don't get the
+same treatment:
+
+- **GDPR is binding law with its own obligations** — Article 22 (automated
+  decision-making) and Article 35 (DPIA) trigger real requirements that are *additional
+  to*, not a relabeling of, the AI Act's Article 9-15 obligations. These become new
+  `Requirement` rows (same `SourceDocument`/`LegalProvision` model, no schema change
+  needed — it was never AI-Act-specific) and `map_obligations` gets extended to add
+  them when `high_risk` is YES/POSSIBLY, since a high-risk AI decision about a person is
+  almost always also GDPR automated-decision-making.
+- **NIST AI RMF and NIST CSF are voluntary frameworks, not obligations** — the value is
+  showing "this same obligation also satisfies NIST GOVERN-1.1," not inventing a
+  parallel classification pipeline. This needs a new `FrameworkCrosswalk` table
+  (`requirement_id` -> framework name + citation + verbatim text) shown alongside the
+  existing obligation, not a new obligation of its own. This is the concrete answer to
+  the confirmed research gap: "no platform maintains a single cross-framework register."
+
+## Phase M — GDPR obligations layer (M)
+**Depends on:** nothing new structurally (same `SourceDocument`/`LegalProvision`/
+`Requirement` model). Ingest Article 22 (automated decision-making/profiling) and
+Article 35 (DPIA) verbatim from EUR-Lex (CELEX 32016R0679) first — the two GDPR articles
+most directly overlapping with what's already classified. Article 5 (principles) and
+Articles 13/14 (transparency) are natural follow-ups, not required for the first slice.
+Extend `map_obligations` to add these when `high_risk` is YES/POSSIBLY.
+
+## Phase N — NIST AI RMF crosswalk (M)
+**Depends on:** nothing new — `Requirement` rows already exist to crosswalk against.
+Ingest NIST AI RMF's four functions (GOVERN/MAP/MEASURE/MANAGE) verbatim (US government,
+public domain). New `FrameworkCrosswalk` table maps existing `EU-AI-ACT-ART9`..`ART15`
+(and the new GDPR) requirements to their NIST equivalents. Shown as an additional
+citation on the same obligation card, not a separate assessment.
+
+## Phase O — NIST CSF crosswalk (S/M)
+**Depends on:** N (reuses `FrameworkCrosswalk`). Narrower scope than N: NIST CSF is
+general cybersecurity, not AI-specific, so it only meaningfully crosswalks against
+`EU-AI-ACT-ART15` (accuracy/robustness/cybersecurity) rather than all seven obligations.
 
 ---
 
-## Phase K — "Explain this rejection" mode (S)
+## Phase K — "Explain this rejection" mode (S) — **substantially delivered as `/ai-risk-check`**
 **Independent**, reuses all existing classification logic. A stripped-down single-
 purpose flow answering just "why was this decision high-risk / not high-risk" — aimed
 at the person fielding a candidate's or customer's question (HR, support), not the
@@ -151,5 +196,9 @@ classification" as a merge-gate check, not a form to fill out after the fact.
 4. **D, E** (natural extensions of A, moderate effort)
 5. **F** (biggest real cost-reduction for actual users, independent)
 6. **G → H** (biggest lift, only worth it once ready for real multi-user/production use)
-7. **I, J, L** (independent, do whenever — I is nearly free, J is content work, L opens
-   the engineering-team persona whenever there's appetite for an API surface)
+7. **M** (GDPR — highest-leverage framework addition, directly overlaps existing
+   high-risk obligations, same ingestion method already proven)
+8. **N → O** (NIST crosswalks — cheap once M exists to crosswalk against, closes the
+   "no unified cross-framework register" gap the research confirmed nobody has solved)
+9. **I, K, L** (independent, do whenever — I is nearly free, L opens the
+   engineering-team persona whenever there's appetite for an API surface)
