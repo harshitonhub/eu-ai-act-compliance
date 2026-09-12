@@ -22,7 +22,8 @@ def main() -> None:
             print("Legal corpus already seeded -- no-op.")
             return
         ingest_seed(session)
-    print("Seeded legal corpus: Article 5, Article 6, Annex III, Articles 9-15.")
+    print("Seeded legal corpus: AI Act Article 5, Article 6, Annex III, Articles 9-15; "
+          "GDPR Article 22, Article 35.")
 
 
 if __name__ == "__main__":

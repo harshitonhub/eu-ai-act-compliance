@@ -17,6 +17,18 @@ Each ingested slice records:
 
 See `legal/sources/eu_ai_act_2024_1689/metadata.json` for the full record.
 
+**GDPR is a second source document** (`legal/sources/gdpr_2016_679/`), ingested under the
+same rule: verbatim fetch, regex tag-strip, exact heading-text boundary search, no LLM.
+As of this ingestion, EUR-Lex's public website sits behind AWS WAF bot detection — both
+plain `curl` and headless Playwright (anti-detection flags, session warm-up, ELI-format
+URLs) were redirected to a generic landing page regardless of target URL. The workaround:
+fetch the same authoritative text from the EU Publications Office's Cellar repository
+instead, `http://publications.europa.eu/resource/celex/<CELEX_ID>` — same ultimate
+publisher, no bot protection, but strict content negotiation is required
+(`Accept: application/xhtml+xml` + `Accept-Language: eng`; omitting the language header
+returns a 400, and URL-suffix language selectors like `/eng` or `.ENG` 404). See
+`legal/sources/gdpr_2016_679/metadata.json`'s `retrieval_note` for the full record.
+
 ## Granularity
 
 - **LegalProvision**: article- or annex-level in this seed slice (Article 5, Article 6,
@@ -77,11 +89,29 @@ Actor role for these seven requirements is `PROVIDER`: Article 8 (not ingested)
 establishes Section 2 as provider obligations; deployer obligations live in Section 3
 (Article 26), also not ingested — deployer-side obligation mapping is deferred.
 
+## Multi-framework obligations (Phase M)
+
+GDPR Article 22 (automated individual decision-making) and Article 35 (data protection
+impact assessment) were added as two more `Requirement` rows (`GDPR-ART22`, `GDPR-ART35`,
+actor role `ANY`, in force from 2018-05-25) and wired into `map_obligations` alongside
+the Article 9-15 obligations: both attach whenever `high_risk` is `YES`/`POSSIBLY`,
+since a high-risk AI decision about a person is almost always also GDPR "automated
+decision-making." This is additive, not a relabeling — GDPR is binding law with its own
+distinct obligations, not a restatement of the AI Act's. See `ROADMAP.md`'s
+"Multi-framework scope" section for why GDPR got this treatment (new `Requirement` rows)
+while NIST AI RMF/CSF get a different one (a `FrameworkCrosswalk` table, Phase N/O) —
+and why ISO 27001/42001 and SOC 2 are excluded outright (copyrighted text, cannot be
+quoted verbatim, real licensing cost).
+
 ## What's deliberately out of scope for this slice
 
-- The remaining ~170 articles and 13 annexes of the Regulation (GPAI obligations, conformity
+- The remaining ~170 articles and 13 annexes of the AI Act (GPAI obligations, conformity
   assessment procedures, governance/enforcement chapters, deployer obligations (Article 26),
   Annexes I/II/IV-XIII).
+- The remaining ~97 articles of GDPR. Article 5 (principles) and Articles 13/14
+  (transparency, information to be provided) are the natural next slice — not required
+  for Phase M's first pass, which targeted the two articles directly overlapping the AI
+  Act's high-risk obligations.
 - Commission implementing acts, AI Office guidance, and codes of practice.
 - Point-level `LegalProvision` rows for Article 5(1)(a)-(h) and Annex III's numbered areas.
 - An automated re-fetch/diff pipeline for legal-source-update (`legal-source-update` skill)

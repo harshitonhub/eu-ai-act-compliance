@@ -1,9 +1,10 @@
-"""Deterministic ingestion of the seed EU AI Act slice into the legal knowledge tables.
+"""Deterministic ingestion of the seed legal corpus into the legal knowledge tables:
+the EU AI Act slice and, since Phase M, GDPR Articles 22/35.
 
 No LLM involved anywhere in this module. Legal text is read verbatim from
-legal/sources/eu_ai_act_2024_1689/*.txt; structured requirements, applicability
-conditions, and exceptions below are engineer-authored restatements that cite the
-verbatim provision they are derived from, per .claude/rules/legal-reasoning.md.
+legal/sources/<source>/*.txt; structured requirements, applicability conditions, and
+exceptions below are engineer-authored restatements that cite the verbatim provision
+they are derived from, per .claude/rules/legal-reasoning.md.
 
 Idempotent: re-running this against an already-seeded database is a no-op.
 """
@@ -30,6 +31,7 @@ from src.persistence.models import (
 )
 
 SOURCES_DIR = Path(__file__).resolve().parents[2] / "legal" / "sources" / "eu_ai_act_2024_1689"
+GDPR_SOURCES_DIR = Path(__file__).resolve().parents[2] / "legal" / "sources" / "gdpr_2016_679"
 
 
 @dataclass(frozen=True)
@@ -352,17 +354,64 @@ ALL_REQUIREMENT_SEEDS = (
     + HIGH_RISK_OBLIGATION_REQUIREMENTS
 )
 
+# GDPR Article 22/35 -- additional obligations that attach alongside the AI Act's Articles
+# 9-15 whenever a system is classified high-risk (a high-risk AI decision about a person is
+# almost always also GDPR "automated decision-making"). See ROADMAP.md Phase M.
+GDPR_HIGH_RISK_START = date(2018, 5, 25)  # GDPR Article 99(2): applicable from 25 May 2018
+
+GDPR_PROVISION_SEEDS = [
+    ProvisionSeed(
+        "Article 22", "Automated individual decision-making, including profiling",
+        "article_22.txt", GDPR_HIGH_RISK_START,
+    ),
+    ProvisionSeed(
+        "Article 35", "Data protection impact assessment", "article_35.txt", GDPR_HIGH_RISK_START,
+    ),
+]
+
+GDPR_OBLIGATION_REQUIREMENTS = [
+    RequirementSeed(
+        "GDPR-ART22",
+        "Data subjects have the right not to be subject to a decision based solely on "
+        "automated processing (including profiling) that produces legal or similarly "
+        "significant effects on them, unless a narrow exception applies -- and even then, "
+        "the controller must provide safeguards including human intervention, the right to "
+        "express a viewpoint, and the right to contest the decision.",
+        "Article 22",
+        ActorRole.ANY,
+        None,
+        GDPR_HIGH_RISK_START,
+    ),
+    RequirementSeed(
+        "GDPR-ART35",
+        "Where processing (in particular automated profiling that produces legal or "
+        "similarly significant effects) is likely to result in a high risk to individuals' "
+        "rights and freedoms, the controller must carry out a data protection impact "
+        "assessment before the processing begins.",
+        "Article 35",
+        ActorRole.ANY,
+        None,
+        GDPR_HIGH_RISK_START,
+    ),
+]
+
 
 def seed_is_present(session: Session) -> bool:
-    return session.query(SourceDocument).filter_by(source_key="eu_ai_act_2024_1689").first() is not None
+    ai_act = session.query(SourceDocument).filter_by(source_key="eu_ai_act_2024_1689").first()
+    gdpr = session.query(SourceDocument).filter_by(source_key="gdpr_2016_679").first()
+    return ai_act is not None and gdpr is not None
 
 
-def ingest_seed(session: Session) -> None:
-    """Load the seed EU AI Act slice into the database. No-op if already present."""
-    if seed_is_present(session):
+def _ingest_source(
+    session: Session,
+    sources_dir: Path,
+    provision_seeds: list[ProvisionSeed],
+    requirement_seeds: list[RequirementSeed],
+) -> None:
+    """Load one source document's provisions and requirements. No-op if already present."""
+    metadata = json.loads((sources_dir / "metadata.json").read_text())
+    if session.query(SourceDocument).filter_by(source_key=metadata["source_document_key"]).first():
         return
-
-    metadata = json.loads((SOURCES_DIR / "metadata.json").read_text())
 
     source_document = SourceDocument(
         source_key=metadata["source_document_key"],
@@ -380,8 +429,8 @@ def ingest_seed(session: Session) -> None:
     session.flush()
 
     provisions_by_citation: dict[str, LegalProvision] = {}
-    for seed in PROVISION_SEEDS:
-        text = (SOURCES_DIR / seed.text_file).read_text()
+    for seed in provision_seeds:
+        text = (sources_dir / seed.text_file).read_text()
         provision = LegalProvision(
             source_document_id=source_document.id,
             citation=seed.citation,
@@ -415,7 +464,7 @@ def ingest_seed(session: Session) -> None:
         )
     )
 
-    for seed in ALL_REQUIREMENT_SEEDS:
+    for seed in requirement_seeds:
         provision = provisions_by_citation[seed.provision_citation]
         requirement = Requirement(
             requirement_key=seed.requirement_key,
@@ -455,3 +504,10 @@ def ingest_seed(session: Session) -> None:
         )
 
     session.commit()
+
+
+def ingest_seed(session: Session) -> None:
+    """Load every seed source document into the database. Each source is independently
+    idempotent, so this is safe to call regardless of which sources are already present."""
+    _ingest_source(session, SOURCES_DIR, PROVISION_SEEDS, ALL_REQUIREMENT_SEEDS)
+    _ingest_source(session, GDPR_SOURCES_DIR, GDPR_PROVISION_SEEDS, GDPR_OBLIGATION_REQUIREMENTS)

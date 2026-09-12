@@ -75,9 +75,11 @@ evidence tracking once a system is flagged high-risk.
 
 Legal corpus covers a representative, not exhaustive, slice: Article 5 (prohibited
 practices), Article 6 + Annex III (high-risk classification), Articles 9-15 (high-risk
-obligations). GPAI and transparency obligations, deployer-side obligations, and most of
-the Regulation's ~180 articles are not yet ingested — the pipeline correctly returns
-`INSUFFICIENT_INFORMATION` for those categories rather than guessing. See
+obligations), plus GDPR Article 22 (automated decision-making) and Article 35 (DPIA),
+which attach as additional obligations whenever a system is classified high-risk. GPAI
+and transparency obligations, deployer-side obligations, most of the AI Act's ~180
+articles, and most of GDPR's ~99 articles are not yet ingested — the pipeline correctly
+returns `INSUFFICIENT_INFORMATION` for those categories rather than guessing. See
 `docs/legal-methodology.md`'s "What's deliberately out of scope" section.
 
 ## Docs

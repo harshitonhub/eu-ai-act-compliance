@@ -11,17 +11,30 @@ def test_ingest_seed_loads_source_document_and_provisions(session):
 
     ingest_seed(session)
 
-    source = session.query(SourceDocument).filter_by(source_key="eu_ai_act_2024_1689").one()
-    assert source.celex_id == "32024R1689"
+    ai_act = session.query(SourceDocument).filter_by(source_key="eu_ai_act_2024_1689").one()
+    assert ai_act.celex_id == "32024R1689"
 
-    provisions = session.query(LegalProvision).all()
-    citations = {p.citation for p in provisions}
+    ai_act_provisions = session.query(LegalProvision).filter_by(source_document_id=ai_act.id).all()
+    citations = {p.citation for p in ai_act_provisions}
     assert citations == {
         "Article 5", "Article 6", "Annex III",
         "Article 9", "Article 10", "Article 11", "Article 12", "Article 13", "Article 14", "Article 15",
     }
-    for provision in provisions:
+    for provision in ai_act_provisions:
         assert "AI system" in provision.text or "AI practices" in provision.text
+
+
+def test_ingest_seed_loads_gdpr_source_document_and_provisions(session):
+    ingest_seed(session)
+
+    gdpr = session.query(SourceDocument).filter_by(source_key="gdpr_2016_679").one()
+    assert gdpr.celex_id == "32016R0679"
+
+    gdpr_provisions = session.query(LegalProvision).filter_by(source_document_id=gdpr.id).all()
+    citations = {p.citation for p in gdpr_provisions}
+    assert citations == {"Article 22", "Article 35"}
+    for provision in gdpr_provisions:
+        assert "data subject" in provision.text.lower()
 
 
 def test_ingest_seed_is_idempotent(session):
@@ -60,8 +73,10 @@ def test_prohibited_practice_with_exception_is_surfaced(session):
 def test_temporal_filter_excludes_requirements_not_yet_in_force(session):
     ingest_seed(session)
 
+    # GDPR (in force since 2018) is already live at this date; the AI Act is not.
     before_any_application = find_requirements(session, as_of=date(2024, 1, 1))
-    assert before_any_application == []
+    keys = {r.requirement_key for r in before_any_application}
+    assert keys == {"GDPR-ART22", "GDPR-ART35"}
 
     after_prohibitions_only = find_requirements(session, as_of=date(2025, 6, 1))
     keys = {r.requirement_key for r in after_prohibitions_only}

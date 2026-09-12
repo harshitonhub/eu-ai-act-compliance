@@ -27,6 +27,10 @@ HIGH_RISK_OBLIGATION_KEYS = (
     "EU-AI-ACT-ART13",
     "EU-AI-ACT-ART14",
     "EU-AI-ACT-ART15",
+    # GDPR obligations that attach alongside the AI Act's: a high-risk AI decision about a
+    # person is almost always also GDPR "automated decision-making" (ROADMAP.md Phase M).
+    "GDPR-ART22",
+    "GDPR-ART35",
 )
 
 PROHIBITED_PRACTICE_CEASE_KEY = "EU-AI-ACT-CEASE-PROHIBITED-PRACTICE"

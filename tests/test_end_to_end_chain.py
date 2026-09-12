@@ -53,14 +53,14 @@ def test_full_chain_facts_to_gaps_with_no_evidence_supplied(session):
     assert classification.for_category(ClassificationCategory.HIGH_RISK).state == ClassificationState.YES
 
     obligations = map_obligations(session, classification)
-    assert len(obligations) == 7  # all seven Article 9-15 obligations attach
+    assert len(obligations) == 9  # Article 9-15 (7) plus GDPR Article 22/35 (2) attach
 
     evidence_client = LLMClient(FakeCompletionProvider([]), model="fake-model")  # no evidence supplied at all
     evidence_assessments = assess_all_obligations(evidence_client, obligations, evidence_by_key={})
     assert all(a.status == EvidenceStatus.INSUFFICIENT_EVIDENCE for a in evidence_assessments)
 
     gaps = compute_gaps(obligations, evidence_assessments)
-    assert len(gaps) == 7  # every obligation is a gap when no evidence exists
+    assert len(gaps) == 9  # every obligation is a gap when no evidence exists
     assert {g.requirement_key for g in gaps} == {o.requirement_key for o in obligations}
 
 
@@ -70,7 +70,7 @@ def test_full_chain_facts_to_gaps_with_partial_evidence_narrows_gaps(session):
     classification = classify_system(classification_client, session, RECRUITMENT_FACTS, as_of=date(2026, 9, 9))
     obligations = map_obligations(session, classification)
 
-    # Evidence supplied (and compliant) for only one of the seven obligations.
+    # Evidence supplied (and compliant) for only one of the nine obligations.
     covered_key = "EU-AI-ACT-ART9"
     evidence_client = LLMClient(
         FakeCompletionProvider([COMPLIANT_EVIDENCE_JSON_TEMPLATE.format(key=covered_key)]), model="fake-model"
@@ -81,7 +81,7 @@ def test_full_chain_facts_to_gaps_with_partial_evidence_narrows_gaps(session):
 
     gaps = compute_gaps(obligations, evidence_assessments)
 
-    assert len(gaps) == 6  # six of seven obligations remain gaps
+    assert len(gaps) == 8  # eight of nine obligations remain gaps
     assert covered_key not in {g.requirement_key for g in gaps}
 
 

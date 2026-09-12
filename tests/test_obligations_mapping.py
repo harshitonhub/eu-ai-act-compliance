@@ -28,7 +28,7 @@ def _result(prohibited_state, high_risk_state, cited=None) -> ClassificationResu
     return ClassificationResult(assessments=assessments)
 
 
-def test_high_risk_yes_maps_to_all_seven_obligations(session):
+def test_high_risk_yes_maps_to_all_nine_obligations(session):
     ingest_seed(session)
     result = _result(
         ClassificationState.NO,
@@ -52,7 +52,22 @@ def test_high_risk_possibly_also_triggers_obligations(session):
 
     obligations = map_obligations(session, result)
 
-    assert len(obligations) == 7
+    assert len(obligations) == 9
+
+
+def test_high_risk_yes_includes_gdpr_obligations(session):
+    ingest_seed(session)
+    result = _result(
+        ClassificationState.NO,
+        ClassificationState.YES,
+        cited=[CitedRequirement(requirement_key="EU-AI-ACT-ANNEXIII-4", citation="Annex III", relevance="recruitment")],
+    )
+
+    obligations = map_obligations(session, result)
+
+    keys = {o.requirement_key for o in obligations}
+    assert "GDPR-ART22" in keys
+    assert "GDPR-ART35" in keys
 
 
 def test_high_risk_no_yields_no_high_risk_obligations(session):
@@ -79,7 +94,7 @@ def test_prohibited_yes_adds_cease_obligation(session):
     assert obligations[0].citation == "Article 5"
 
 
-def test_both_prohibited_and_high_risk_yes_yields_eight_obligations(session):
+def test_both_prohibited_and_high_risk_yes_yields_ten_obligations(session):
     ingest_seed(session)
     result = _result(
         ClassificationState.YES,
@@ -89,4 +104,4 @@ def test_both_prohibited_and_high_risk_yes_yields_eight_obligations(session):
 
     obligations = map_obligations(session, result)
 
-    assert len(obligations) == 8
+    assert len(obligations) == 10

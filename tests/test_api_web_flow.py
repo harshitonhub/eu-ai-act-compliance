@@ -137,7 +137,7 @@ def test_full_web_flow_facts_to_report_with_citations_gaps_and_review_flags(web_
             "classification_llm_calls_json": classification_llm_calls_json,
             "as_of": as_of_value,
             "evidence__EU-AI-ACT-ART9": "Generic risk policy: we manage risk appropriately.",
-            # ART10-15 deliberately left blank -> INSUFFICIENT_EVIDENCE, zero LLM calls for them
+            # ART10-15 and GDPR-ART22/35 deliberately left blank -> INSUFFICIENT_EVIDENCE, zero LLM calls for them
         },
     )
     assert report_response.status_code == 200
@@ -146,7 +146,7 @@ def test_full_web_flow_facts_to_report_with_citations_gaps_and_review_flags(web_
     assert "EU-AI-ACT-ANNEXIII-4" in report_html  # classification citation carried through
     assert "EU-AI-ACT-ART9" in report_html  # obligation + evidence status shown
     assert "NON_COMPLIANT" in report_html  # evidence status
-    assert "Gaps (7)" in report_html  # all 7 obligations are gaps (1 non-compliant + 6 insufficient)
+    assert "Gaps (9)" in report_html  # all 9 obligations are gaps (1 non-compliant + 8 insufficient)
     assert "high_impact_high_risk" in report_html  # review flag for high_risk=YES
     assert "evidence_gap" in report_html  # review flag for the non-compliant/insufficient obligations
 
@@ -156,9 +156,9 @@ def test_full_web_flow_facts_to_report_with_citations_gaps_and_review_flags(web_
         reconstructed = reconstruct_assessment(verify_session, assessment_id)
     assert reconstructed is not None
     assert reconstructed.classification == ClassificationResult.model_validate_json(classification_json)
-    assert len(reconstructed.obligations) == 7
-    assert len(reconstructed.evidence_assessments) == 7
-    assert len(reconstructed.gaps) == 7
+    assert len(reconstructed.obligations) == 9
+    assert len(reconstructed.evidence_assessments) == 9
+    assert len(reconstructed.gaps) == 9
     assert len(reconstructed.review_flags) >= 2
     assert len(reconstructed.llm_calls) == 3  # 2 classification calls + 1 evidence call
     assert reconstructed.total_input_tokens > 0

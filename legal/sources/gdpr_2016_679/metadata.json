@@ -1,0 +1,32 @@
+{
+  "source_document_key": "gdpr_2016_679",
+  "celex_id": "32016R0679",
+  "official_title": "Regulation (EU) 2016/679 of the European Parliament and of the Council of 27 April 2016 on the protection of natural persons with regard to the processing of personal data and on the free movement of such data, and repealing Directive 95/46/EC (General Data Protection Regulation)",
+  "short_name": "GDPR",
+  "oj_reference": "OJ L 119, 4.5.2016, p. 1",
+  "date_of_act": "2016-04-27",
+  "date_published": "2016-05-04",
+  "date_entry_into_force": "2016-05-24",
+  "date_application": "2018-05-25",
+  "source_url": "http://publications.europa.eu/resource/celex/32016R0679",
+  "retrieval_method": "automated_fetch_verbatim_extraction",
+  "retrieval_note": "EUR-Lex's public website (eur-lex.europa.eu) now sits behind AWS WAF bot detection: both plain curl and headless Playwright (with anti-detection flags, session warm-up, and ELI-format URLs) were redirected to a generic TodayOJ landing page regardless of target URL. Worked around by fetching the same authoritative text from the EU Publications Office's Cellar repository instead (http://publications.europa.eu/resource/celex/<CELEX_ID>), which has no equivalent bot protection. Cellar requires precise content negotiation -- Accept: application/xhtml+xml plus Accept-Language: eng headers; omitting the language header returns a 400 demanding one, and URL-suffix-based language selectors (/eng, .ENG, ?language=eng) all 404. Once fetched, the same regex tag-strip + exact heading-text boundary search used for the AI Act was applied -- no LLM in the extraction path.",
+  "raw_fetch_sha256": "962539af03738bf552319ff4ce42d69e5f95a576307c4dfed7bf87e81b646b9d",
+  "retrieved_at": "2026-09-12T00:00:00Z",
+  "application_dates_source": "Article 99 'Entry into force and application', verbatim: \"This Regulation shall enter into force on the twentieth day following that of its publication in the Official Journal of the European Union. It shall apply from 25 May 2018.\"",
+  "excerpts_ingested": [
+    {
+      "citation": "Article 22",
+      "file": "article_22.txt",
+      "heading": "Automated individual decision-making, including profiling",
+      "chapter": "Chapter III, Section 4"
+    },
+    {
+      "citation": "Article 35",
+      "file": "article_35.txt",
+      "heading": "Data protection impact assessment",
+      "chapter": "Chapter IV, Section 3"
+    }
+  ],
+  "excerpts_extraction_note": "First slice of GDPR ingested: the two articles most directly overlapping the AI Act's high-risk obligations (automated decision-making and impact assessment), per ROADMAP.md Phase M. Article 5 (principles) and Articles 13/14 (transparency) are natural follow-ups, not required for this slice."
+}

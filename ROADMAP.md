@@ -136,13 +136,15 @@ same treatment:
   existing obligation, not a new obligation of its own. This is the concrete answer to
   the confirmed research gap: "no platform maintains a single cross-framework register."
 
-## Phase M — GDPR obligations layer (M)
-**Depends on:** nothing new structurally (same `SourceDocument`/`LegalProvision`/
-`Requirement` model). Ingest Article 22 (automated decision-making/profiling) and
-Article 35 (DPIA) verbatim from EUR-Lex (CELEX 32016R0679) first — the two GDPR articles
-most directly overlapping with what's already classified. Article 5 (principles) and
-Articles 13/14 (transparency) are natural follow-ups, not required for the first slice.
-Extend `map_obligations` to add these when `high_risk` is YES/POSSIBLY.
+## Phase M — GDPR obligations layer (M) — **delivered**
+Ingested Article 22 (automated decision-making/profiling) and Article 35 (DPIA) verbatim
+— the two GDPR articles most directly overlapping with what's already classified.
+Sourced via the EU Publications Office's Cellar repository rather than EUR-Lex directly,
+since EUR-Lex's public site now sits behind AWS WAF bot detection (see
+`docs/legal-methodology.md`). `map_obligations` extended to add `GDPR-ART22`/`GDPR-ART35`
+whenever `high_risk` is YES/POSSIBLY, alongside the existing Article 9-15 obligations.
+Article 5 (principles) and Articles 13/14 (transparency) are natural follow-ups, not
+required for this first slice.
 
 ## Phase N — NIST AI RMF crosswalk (M)
 **Depends on:** nothing new — `Requirement` rows already exist to crosswalk against.
