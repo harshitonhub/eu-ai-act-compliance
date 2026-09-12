@@ -37,6 +37,7 @@ file types: .txt, .pdf, .docx, up to 5&nbsp;MB.</p>
   <input type="hidden" name="classification_json" value='{{ classification_json }}'>
   <input type="hidden" name="classification_llm_calls_json" value='{{ classification_llm_calls_json }}'>
   <input type="hidden" name="as_of" value="{{ as_of }}">
+  <input type="hidden" name="ai_system_name" value="{{ ai_system_name or '' }}">
 
   {% for o in obligations %}
   <div class="obligation-block">
@@ -58,6 +59,7 @@ file types: .txt, .pdf, .docx, up to 5&nbsp;MB.</p>
   <input type="hidden" name="classification_json" value='{{ classification_json }}'>
   <input type="hidden" name="classification_llm_calls_json" value='{{ classification_llm_calls_json }}'>
   <input type="hidden" name="as_of" value="{{ as_of }}">
+  <input type="hidden" name="ai_system_name" value="{{ ai_system_name or '' }}">
   <button type="submit">Generate report <span class="htmx-indicator">…</span></button>
 </form>
 {% endif %}

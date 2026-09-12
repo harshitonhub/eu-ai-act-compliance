@@ -8,6 +8,16 @@
 {% if error %}<p class="flag">{{ error }}</p>{% endif %}
 
 <form method="post" action="/assess">
+  <label for="ai_system_name">AI system (optional)</label>
+  <input id="ai_system_name" name="ai_system_name" list="existing_system_names" value="{{ ai_system_name or '' }}" placeholder="e.g. Resume Screener">
+  <datalist id="existing_system_names">
+    {% for name in existing_system_names %}
+    <option value="{{ name }}">
+    {% endfor %}
+  </datalist>
+  <p class="hint">Name it to group this assessment with others for the same system on
+  the <a href="/history">history</a> page. Leave blank for a one-off check.</p>
+
   <label for="system_description">System description</label>
   <textarea id="system_description" name="system_description" required>{{ system_description or "" }}</textarea>
 

@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% import "_assessment_table.html" as t %}
+{% block title %}{{ system.name }} — EU AI Act Compliance{% endblock %}
+{% block content %}
+<p class="hint"><a href="/history">← My AI systems</a></p>
+<h2>{{ system.name }}</h2>
+{% if system.description %}<p>{{ system.description }}</p>{% endif %}
+
+<h3>Assessment history ({{ assessments|length }})</h3>
+{% if assessments %}
+{{ t.assessment_table(assessments) }}
+{% else %}
+<p class="hint">No assessments yet for this system.</p>
+{% endif %}
+{% endblock %}

@@ -1,29 +1,21 @@
 {% extends "base.html" %}
-{% block title %}Assessment History — EU AI Act Compliance{% endblock %}
+{% import "_assessment_table.html" as t %}
+{% block title %}My AI Systems — EU AI Act Compliance{% endblock %}
 {% block content %}
-<h2>Assessment history</h2>
+<h2>My AI systems</h2>
 
-{% if assessments %}
-<table>
-  <tr><th>Date</th><th>System</th><th>Review</th><th></th></tr>
-  {% for a in assessments %}
-  <tr>
-    <td>{{ a.created_at.strftime("%Y-%m-%d %H:%M") }}</td>
-    <td>{{ a.system_description[:80] }}{% if a.system_description|length > 80 %}…{% endif %}</td>
-    <td>
-      {% if a.error %}
-      <span class="status-NON_COMPLIANT">Failed</span>
-      {% elif a.requires_human_review %}
-      <span class="status-PARTIALLY_COMPLIANT">Review needed</span>
-      {% else %}
-      <span class="status-COMPLIANT">Clean</span>
-      {% endif %}
-    </td>
-    <td><a href="/assessments/{{ a.assessment_id }}">View report</a></td>
-  </tr>
-  {% endfor %}
-</table>
-{% else %}
+{% if not systems and not ungrouped %}
 <p class="hint">No assessments yet. <a href="/">Start one</a>.</p>
+{% endif %}
+
+{% for system in systems %}
+<h3><a href="/systems/{{ system.id }}">{{ system.name }}</a> <span class="hint">({{ system.assessment_count }} assessment{{ "s" if system.assessment_count != 1 else "" }})</span></h3>
+{{ t.assessment_table(by_system_id[system.id]) }}
+{% endfor %}
+
+{% if ungrouped %}
+<h3>Ungrouped</h3>
+<p class="hint">One-off checks not assigned to a named AI system.</p>
+{{ t.assessment_table(ungrouped) }}
 {% endif %}
 {% endblock %}

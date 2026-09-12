@@ -28,6 +28,7 @@ from src.observability.serialization import llm_call_record_from_dict, llm_call_
 from src.persistence.db import get_session
 from src.reporting.report import build_report
 from src.review.triggers import determine_review_flags
+from src.systems.registry import get_ai_system, get_or_create_ai_system, list_ai_systems
 from src.web.copy import STATE_EXPLANATIONS
 
 router = APIRouter()
@@ -62,11 +63,15 @@ def _crosswalks_for(session: Session, obligations: list[Obligation]) -> dict[str
 
 
 @router.get("/", response_class=HTMLResponse)
-def show_assessment_form(request: Request) -> HTMLResponse:
+def show_assessment_form(request: Request, session: Session = Depends(get_session)) -> HTMLResponse:
     return templates.TemplateResponse(
         request,
         "assessment_form.html",
-        {"actor_roles": [r.value for r in ActorRole], "as_of": date.today().isoformat()},
+        {
+            "actor_roles": [r.value for r in ActorRole],
+            "as_of": date.today().isoformat(),
+            "existing_system_names": [s.name for s in list_ai_systems(session)],
+        },
     )
 
 
@@ -78,6 +83,7 @@ def submit_assessment(
     actor_role: str = Form(""),
     sector: str = Form(""),
     as_of: str = Form(...),
+    ai_system_name: str = Form(""),
     session: Session = Depends(get_session),
     llm_client: LLMClient = Depends(get_llm_client),
     _rate_limit: None = Depends(rate_limit),
@@ -106,6 +112,8 @@ def submit_assessment(
                 "intended_purpose": intended_purpose,
                 "actor_role": actor_role,
                 "sector": sector,
+                "ai_system_name": ai_system_name,
+                "existing_system_names": [s.name for s in list_ai_systems(session)],
                 "error": (
                     "Something went wrong while classifying this system. "
                     f"Technical detail: {exc}"
@@ -128,6 +136,7 @@ def submit_assessment(
                 [llm_call_record_to_dict(c) for c in instrumented_client.call_records]
             ),
             "as_of": as_of,
+            "ai_system_name": ai_system_name,
         },
     )
 
@@ -147,6 +156,9 @@ async def generate_report(
     classification_llm_calls = [
         llm_call_record_from_dict(d) for d in json.loads(form["classification_llm_calls_json"])
     ]
+
+    ai_system_name = str(form.get("ai_system_name", "")).strip()
+    ai_system_id = get_or_create_ai_system(session, ai_system_name).id if ai_system_name else None
 
     obligations: list[Obligation] = map_obligations(session, classification)
 
@@ -190,6 +202,7 @@ async def generate_report(
             review_flags=review_flags,
             llm_calls=classification_llm_calls + instrumented_client.call_records,
             error=error,
+            ai_system_id=ai_system_id,
         )
         raise
 
@@ -204,6 +217,7 @@ async def generate_report(
         gaps=gaps,
         review_flags=review_flags,
         llm_calls=classification_llm_calls + instrumented_client.call_records,
+        ai_system_id=ai_system_id,
     )
 
     report = build_report(facts, as_of_date, classification, obligations, evidence_assessments, gaps, review_flags)
@@ -223,8 +237,28 @@ async def generate_report(
 
 @router.get("/history", response_class=HTMLResponse)
 def show_history(request: Request, session: Session = Depends(get_session)) -> HTMLResponse:
-    assessments = list_recent_assessments(session)
-    return templates.TemplateResponse(request, "history.html", {"assessments": assessments})
+    systems = list_ai_systems(session)
+    all_assessments = list_recent_assessments(session)
+    by_system_id = {s.id: [a for a in all_assessments if a.ai_system_id == s.id] for s in systems}
+    ungrouped = [a for a in all_assessments if a.ai_system_id is None]
+    return templates.TemplateResponse(
+        request,
+        "history.html",
+        {"systems": systems, "by_system_id": by_system_id, "ungrouped": ungrouped},
+    )
+
+
+@router.get("/systems/{ai_system_id}", response_class=HTMLResponse)
+def show_ai_system(
+    ai_system_id: str, request: Request, session: Session = Depends(get_session)
+) -> HTMLResponse:
+    system = get_ai_system(session, ai_system_id)
+    if system is None:
+        raise HTTPException(status_code=404, detail="AI system not found.")
+    assessments = list_recent_assessments(session, ai_system_id=ai_system_id)
+    return templates.TemplateResponse(
+        request, "ai_system_detail.html", {"system": system, "assessments": assessments}
+    )
 
 
 @router.get("/assessments/{assessment_id}", response_class=HTMLResponse)

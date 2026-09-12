@@ -186,6 +186,25 @@ class ProvenanceRecord(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime, default=lambda: datetime.now(timezone.utc))
 
 
+class AISystem(Base):
+    """A named AI system a user tracks assessments against (Phase A registry).
+
+    Assessments aren't required to belong to one -- `AssessmentRecord.ai_system_id` is
+    nullable so ungrouped/ad-hoc assessments (and every historical row from before this
+    table existed) stay valid. `tenant_id` mirrors AssessmentRecord's: unused single-
+    tenant column today, present so multi-tenancy doesn't need a later migration.
+    """
+
+    __tablename__ = "ai_systems"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=_uuid)
+    tenant_id: Mapped[str | None] = mapped_column(String(128), nullable=True)
+    name: Mapped[str] = mapped_column(String(256))
+    description: Mapped[str | None] = mapped_column(Text, nullable=True)
+    owner_note: Mapped[str | None] = mapped_column(Text, nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=lambda: datetime.now(timezone.utc))
+
+
 class AssessmentRecord(Base):
     """Everything needed to reconstruct a past assessment, per the mandate's
     "Observability and reproducibility" list. Nested objects (facts, classification,
@@ -201,6 +220,7 @@ class AssessmentRecord(Base):
 
     id: Mapped[str] = mapped_column(String(36), primary_key=True, default=_uuid)
     tenant_id: Mapped[str | None] = mapped_column(String(128), nullable=True)
+    ai_system_id: Mapped[str | None] = mapped_column(ForeignKey("ai_systems.id"), nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=lambda: datetime.now(timezone.utc))
     as_of: Mapped[date] = mapped_column(Date)
     legal_knowledge_source_key: Mapped[str] = mapped_column(String(128))

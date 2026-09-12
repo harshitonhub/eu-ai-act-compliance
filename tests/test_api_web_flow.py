@@ -378,3 +378,86 @@ def test_view_unknown_assessment_returns_404(web_client):
     response = client.get("/assessments/does-not-exist")
 
     assert response.status_code == 404
+
+
+def test_named_ai_system_groups_assessments_on_history_and_has_own_detail_page(web_client):
+    client, holder, _engine = web_client
+
+    holder.responses = list(HIGH_RISK_CLASSIFICATION_RESPONSES)
+    assess_response = client.post(
+        "/assess",
+        data={
+            "ai_system_name": "Resume Screener",
+            "system_description": "An AI tool that screens and ranks job applicant resumes for an employer.",
+            "intended_purpose": "Recruitment and candidate evaluation for employers.",
+            "actor_role": "deployer",
+            "sector": "",
+            "as_of": "2026-09-09",
+        },
+    )
+    assert 'name="ai_system_name" value="Resume Screener"' in assess_response.text
+
+    holder.responses = []
+    client.post(
+        "/report",
+        data={
+            "facts_json": _extract_hidden_value("facts_json", assess_response.text),
+            "classification_json": _extract_hidden_value("classification_json", assess_response.text),
+            "classification_llm_calls_json": _extract_hidden_value(
+                "classification_llm_calls_json", assess_response.text
+            ),
+            "as_of": _extract_hidden_value("as_of", assess_response.text),
+            "ai_system_name": "Resume Screener",
+        },
+    )
+
+    history_html = client.get("/history").text
+    assert "Resume Screener" in history_html
+    assert "Ungrouped" not in history_html  # nothing ungrouped yet
+
+    system_link_match = re.search(r'/systems/([\w-]+)', history_html)
+    assert system_link_match, "no AI system link found in history page"
+    system_id = system_link_match.group(1)
+
+    detail_response = client.get(f"/systems/{system_id}")
+    assert detail_response.status_code == 200
+    assert "Resume Screener" in detail_response.text
+    assert "Assessment history (1)" in detail_response.text
+
+    # A second assessment for the same system (by name) lands on the same detail page.
+    holder.responses = list(HIGH_RISK_CLASSIFICATION_RESPONSES)
+    second_assess = client.post(
+        "/assess",
+        data={
+            "ai_system_name": "Resume Screener",
+            "system_description": "Same resume screener, re-assessed after a model update.",
+            "intended_purpose": "Recruitment and candidate evaluation for employers.",
+            "actor_role": "deployer",
+            "sector": "",
+            "as_of": "2026-09-09",
+        },
+    )
+    holder.responses = []
+    client.post(
+        "/report",
+        data={
+            "facts_json": _extract_hidden_value("facts_json", second_assess.text),
+            "classification_json": _extract_hidden_value("classification_json", second_assess.text),
+            "classification_llm_calls_json": _extract_hidden_value(
+                "classification_llm_calls_json", second_assess.text
+            ),
+            "as_of": _extract_hidden_value("as_of", second_assess.text),
+            "ai_system_name": "Resume Screener",
+        },
+    )
+
+    detail_response = client.get(f"/systems/{system_id}")
+    assert "Assessment history (2)" in detail_response.text
+
+
+def test_unknown_ai_system_returns_404(web_client):
+    client, _holder, _engine = web_client
+
+    response = client.get("/systems/does-not-exist")
+
+    assert response.status_code == 404

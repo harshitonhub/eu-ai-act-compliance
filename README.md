@@ -52,7 +52,8 @@ Every stage is a separate, independently-tested module — see `docs/architectur
 - **Every assessment is reconstructable — and browsable.** Facts, classification,
   obligations, evidence, LLM call metadata (model, prompt version, tokens, latency), and
   errors are all persisted (`src/observability/`) and viewable later at a permanent
-  `/assessments/<id>` URL, with a `/history` page listing every past run.
+  `/assessments/<id>` URL, with a `/history` page grouping past runs by named AI system
+  (optional at assessment time) instead of one flat list of unrelated checks.
 - **Citations link to the actual verbatim law**, not a bare code. Click a citation
   in the UI and the exact quoted Article/Annex text is right there — the same text
   ingested from EUR-Lex, not a paraphrase.
@@ -122,7 +123,7 @@ enforce the assessment data retention window (default 90 days).
 uv run pytest
 ```
 
-150 tests: unit/integration tests per module, 16 classification + 8 evidence golden
+157 tests: unit/integration tests per module, 16 classification + 8 evidence golden
 cases, and the adversarial suite — all offline via a fake LLM provider, so CI never
 needs a live API key. See `evals/README.md` for what these suites do and don't prove.
 

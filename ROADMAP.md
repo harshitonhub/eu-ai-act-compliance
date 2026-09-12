@@ -36,13 +36,17 @@ Annex III-5 creditworthiness, Article 5(1)(f) emotion recognition) — not a coi
 worth burying, a direct proof point that this system is built for what regulators are
 actually fining.
 
-## Phase A — AI system registry (S/M)
+## Phase A — AI system registry (S/M) — **delivered**
 **Unlocks:** B, D, E, and makes the history page group by system instead of a flat list.
 
-New `AISystem` table (name, description, owner note, created_at). `AssessmentRecord`
-gets an `ai_system_id` FK. `/history` becomes "My AI Systems," each with its own
-assessment history, instead of one flat list of unrelated runs. Without this, re-
-assessment reminders, deadline tracking, and update alerts have nothing to attach to.
+New `AISystem` table (name, description, owner note, created_at); `AssessmentRecord`
+gets a nullable `ai_system_id` FK, so every historical assessment stays valid ungrouped.
+The assessment form gets an optional "AI system" field (autocompleted against existing
+names via a datalist); naming it at submission time gets-or-creates the `AISystem` by
+exact name and links the new assessment to it. `/history` is now "My AI Systems" --
+grouped by system, with an "Ungrouped" section for one-off checks -- and each system
+gets its own permalink (`/systems/{id}`) showing just its assessment history. See
+`src/systems/registry.py`.
 
 ## Phase B — Regulatory update alerts (S)
 **Depends on:** A. **Why cheap:** the versioning infra (`supersede_requirement`,

@@ -47,6 +47,7 @@ class AssessmentSummary:
     system_description: str
     requires_human_review: bool
     error: str | None
+    ai_system_id: str | None = None
 
 
 @dataclass(frozen=True)
@@ -55,6 +56,7 @@ class ReconstructedAssessment:
     created_at: datetime
     as_of: date
     legal_knowledge_source_key: str
+    ai_system_id: str | None
     facts: ExtractedFacts
     classification: ClassificationResult
     obligations: list[Obligation]
@@ -81,9 +83,11 @@ def record_assessment(
     review_flags: list[ReviewFlag],
     llm_calls: list[LLMCallRecord],
     error: str | None = None,
+    ai_system_id: str | None = None,
 ) -> str:
     """Persist a completed assessment. Returns the assessment_id."""
     record = AssessmentRecord(
+        ai_system_id=ai_system_id,
         as_of=as_of,
         legal_knowledge_source_key=legal_knowledge_source_key,
         facts_json=facts.model_dump_json(),
@@ -113,6 +117,7 @@ def reconstruct_assessment(session: Session, assessment_id: str) -> Reconstructe
         created_at=record.created_at,
         as_of=record.as_of,
         legal_knowledge_source_key=record.legal_knowledge_source_key,
+        ai_system_id=record.ai_system_id,
         facts=ExtractedFacts.model_validate_json(record.facts_json),
         classification=ClassificationResult.model_validate_json(record.classification_json),
         obligations=[obligation_from_dict(d) for d in json.loads(record.obligations_json)],
@@ -129,11 +134,18 @@ def reconstruct_assessment(session: Session, assessment_id: str) -> Reconstructe
     )
 
 
-def list_recent_assessments(session: Session, *, limit: int = 50) -> list[AssessmentSummary]:
+def list_recent_assessments(
+    session: Session, *, limit: int = 50, ai_system_id: str | None = None
+) -> list[AssessmentSummary]:
     """Lightweight summaries for a history/dashboard view -- avoids fully deserializing
     every nested object (obligations, evidence, LLM calls) just to render a list.
+
+    `ai_system_id` restricts to one AI system's history; omit for every assessment
+    (grouped by system in the template) -- see src/systems/registry.py.
     """
     stmt = select(AssessmentRecord).order_by(AssessmentRecord.created_at.desc()).limit(limit)
+    if ai_system_id is not None:
+        stmt = stmt.where(AssessmentRecord.ai_system_id == ai_system_id)
     records = session.scalars(stmt).all()
     return [
         AssessmentSummary(
@@ -143,6 +155,7 @@ def list_recent_assessments(session: Session, *, limit: int = 50) -> list[Assess
             system_description=ExtractedFacts.model_validate_json(record.facts_json).system_description,
             requires_human_review=bool(json.loads(record.review_flags_json)),
             error=record.error,
+            ai_system_id=record.ai_system_id,
         )
         for record in records
     ]

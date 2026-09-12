@@ -20,6 +20,7 @@ src/
   web/            # Jinja2 + HTMX templates, minimal forms
   persistence/    # SQLAlchemy models, migrations (Alembic), tenant-scoped queries
   observability/  # structured logging, assessment-trace reconstruction
+  systems/        # AI system registry: named records assessments attach to (deterministic, no LLM)
 schemas/          # Pydantic/JSON Schema for every LLM structured output
 prompts/          # versioned prompt templates per role
 legal/            # ingested legal source documents + structured requirement records (versioned)

@@ -1,8 +1,37 @@
+import pytest
 from fastapi.testclient import TestClient
+from sqlalchemy import create_engine
+from sqlalchemy.orm import Session
+from sqlalchemy.pool import StaticPool
 
 from src.api.main import app
+from src.persistence.db import get_session
+from src.persistence.models import Base
 
 client = TestClient(app)
+
+
+@pytest.fixture(autouse=True)
+def _db_override():
+    """GET "/" queries the AI system registry (Phase A), so it needs a real schema --
+    the default app wiring points at ./dev.db, which won't exist/be migrated in CI."""
+    engine = create_engine(
+        "sqlite:///:memory:", connect_args={"check_same_thread": False}, poolclass=StaticPool
+    )
+    Base.metadata.create_all(engine)
+
+    def override_get_session():
+        session = Session(engine)
+        try:
+            yield session
+        finally:
+            session.close()
+
+    app.dependency_overrides[get_session] = override_get_session
+    try:
+        yield
+    finally:
+        app.dependency_overrides.clear()
 
 
 def test_health_is_public(monkeypatch):
