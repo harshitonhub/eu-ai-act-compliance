@@ -64,10 +64,11 @@ Every stage is a separate, independently-tested module — see `docs/architectur
 
 ## Try it without logging in
 
-`/hiring-ai-check` is a standalone, public, no-auth page: describe a hiring/recruitment
-tool in one sentence, get one plain-English answer with a citation — no setup, no
-credentials. It's the committed starting niche (see `ROADMAP.md`), not the full
-workflow; it hands off to the full authenticated assessment for obligations and
+`/ai-risk-check` is a standalone, public, no-auth page: describe any AI system in one
+sentence, get one plain-English answer with a citation — no setup, no credentials. The
+hero copy leads with hiring AI (see `ROADMAP.md`'s niche rationale), but the check
+itself covers all 8 Annex III high-risk categories, since the classification pipeline
+already does. Hands off to the full authenticated assessment for obligations and
 evidence tracking once a system is flagged high-risk.
 
 ## Scope
@@ -102,7 +103,7 @@ APP_USERNAME=<user> APP_PASSWORD=<password> ANTHROPIC_API_KEY=<key> uv run uvico
 server refuses to serve without them. `ANTHROPIC_API_KEY` is read by the `anthropic`
 SDK directly — omit it to fail fast at classification time rather than starting with a
 broken LLM client. `/assess` and `/report` are rate-limited (10 requests/60s per IP);
-`/hiring-ai-check` is public and rate-limited harder (3 requests/60s per IP) since it
+`/ai-risk-check` is public and rate-limited harder (3 requests/60s per IP) since it
 has no auth barrier at all — see `docs/security-model.md`.
 
 Run `python scripts/purge_expired_assessments.py` periodically (e.g. via cron) to

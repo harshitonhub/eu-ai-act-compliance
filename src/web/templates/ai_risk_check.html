@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% block title %}Hiring AI Check — is your tool breaking EU law?{% endblock %}
+{% block title %}AI Risk Check — is your AI system breaking EU law?{% endblock %}
 {% block body_class %}wide{% endblock %}
 
 {% block extra_style %}
@@ -128,24 +128,24 @@
 {% block content %}
 <div class="hero">
   <span class="eyebrow">Free · No login · 30 seconds</span>
-  <h1>Is your hiring tool <span class="accent">breaking EU law?</span></h1>
-  <p class="lede">The EU AI Office just fined a hiring platform €18M for deploying
-  screening AI without the right documentation or human oversight. Find out where you
-  stand before they find you.</p>
+  <h1>Is your AI system <span class="accent">breaking EU law?</span></h1>
+  <p class="lede">The EU AI Office's first enforcement wave fined a hiring platform,
+  a credit scorer, and a retailer €47M combined — for exactly the kind of gaps this
+  checks for. Find out where you stand before they find you.</p>
 </div>
 
 <div class="fine-strip">
   <div class="stat"><strong>€47M</strong><span>Total fines, first enforcement wave</span></div>
-  <div class="stat"><strong>€18M</strong><span>Largest single fine — hiring AI</span></div>
+  <div class="stat"><strong>3</strong><span>Sectors hit: hiring, credit, retail</span></div>
   <div class="stat"><strong>0</strong><span>Days the EU waited to enforce</span></div>
 </div>
 
 {% if error %}<p class="flag">{{ error }}</p>{% endif %}
 
-<form method="post" action="/hiring-ai-check" class="check-card">
-  <label for="description">What does the hiring or recruitment tool do?</label>
-  <textarea id="description" name="description" required placeholder="e.g. It scans resumes and ranks candidates by fit score before a recruiter reviews them.">{{ description or "" }}</textarea>
-  <button type="submit">Check my tool <span class="htmx-indicator">…</span></button>
+<form method="post" action="/ai-risk-check" class="check-card">
+  <label for="description">What does the AI system do?</label>
+  <textarea id="description" name="description" required placeholder="e.g. It scans resumes and ranks job candidates, scores loan applicants, or flags emergency calls for priority dispatch.">{{ description or "" }}</textarea>
+  <button type="submit">Check my system <span class="htmx-indicator">…</span></button>
 </form>
 
 {% if not high_risk %}

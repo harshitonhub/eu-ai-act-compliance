@@ -17,9 +17,13 @@ first three EU AI Act fines (€18M of €47M, for missing conformity docs and n
 oversight). Not independently verified against the other 7 categories — a fair
 challenge to revisit if this niche underperforms.
 
-First build against this niche: a standalone, public, no-login "Hiring AI Check" —
+First build against this niche: a standalone, public, no-login "AI Risk Check" —
 one text box, one plain-English answer, reusing the existing classification pipeline
-end to end. See `src/api/routers/hiring_check.py`.
+end to end. The hero copy leads with the hiring-AI fine as the hook, but the check
+itself was broadened to cover any AI system across all 8 Annex III categories almost
+immediately — the classify_system pipeline already checked all of them regardless;
+narrowing the page to hiring-only was a copy choice, not a technical constraint, and it
+made the tool feel more limited than it is. See `src/api/routers/ai_risk_check.py`.
 
 ## Why this matters now, concretely
 

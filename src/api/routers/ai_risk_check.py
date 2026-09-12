@@ -1,7 +1,11 @@
-"""Standalone public entry point for the hiring/recruitment AI niche (Annex III point
-4 -- see ROADMAP.md's "Committed starting niche"). One text box, one plain-English
-answer, reusing the full classification pipeline -- but scoped to what an HR or
-support person actually needs, not a full compliance workflow.
+"""Standalone public entry point for a quick EU AI Act risk check. One text box, one
+plain-English answer, reusing the full classification pipeline -- but scoped to a
+single quick question, not the full compliance workflow.
+
+Originally scoped to hiring/recruitment AI specifically as the starting niche (see
+ROADMAP.md); broadened to any AI system once it was clear the underlying
+classify_system pipeline already checks all 8 Annex III categories regardless -- the
+narrowness was in this page's copy, not a technical limitation.
 
 Deliberately separate from the authenticated assessment router: public, no login,
 stricter rate limit, and no AssessmentRecord persisted (anonymous input shouldn't
@@ -36,13 +40,13 @@ templates.env.globals["STATE_EXPLANATIONS"] = STATE_EXPLANATIONS
 templates.env.globals["public_page"] = True  # hides the auth-only /history nav link
 
 
-@router.get("/hiring-ai-check", response_class=HTMLResponse)
-def show_hiring_check_form(request: Request) -> HTMLResponse:
-    return templates.TemplateResponse(request, "hiring_ai_check.html", {})
+@router.get("/ai-risk-check", response_class=HTMLResponse)
+def show_ai_risk_check_form(request: Request) -> HTMLResponse:
+    return templates.TemplateResponse(request, "ai_risk_check.html", {})
 
 
-@router.post("/hiring-ai-check", response_class=HTMLResponse)
-def run_hiring_check(
+@router.post("/ai-risk-check", response_class=HTMLResponse)
+def run_ai_risk_check(
     request: Request,
     description: str = Form(...),
     session: Session = Depends(get_session),
@@ -56,7 +60,7 @@ def run_hiring_check(
     except Exception as exc:  # noqa: BLE001 -- surfaced to the user, no record to persist
         return templates.TemplateResponse(
             request,
-            "hiring_ai_check.html",
+            "ai_risk_check.html",
             {"description": description, "error": f"Something went wrong. Technical detail: {exc}"},
         )
 
@@ -72,7 +76,7 @@ def run_hiring_check(
 
     return templates.TemplateResponse(
         request,
-        "hiring_ai_check.html",
+        "ai_risk_check.html",
         {
             "description": description,
             "prohibited": prohibited,

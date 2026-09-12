@@ -60,7 +60,7 @@ def public_client():
 def test_form_page_requires_no_auth(public_client):
     client, _holder, _engine = public_client
 
-    response = client.get("/hiring-ai-check")
+    response = client.get("/ai-risk-check")
 
     assert response.status_code == 200
     assert "breaking EU law" in response.text
@@ -71,7 +71,7 @@ def test_check_returns_plain_answer_with_citation(public_client):
     holder.responses = list(HIGH_RISK_RESPONSES)
 
     response = client.post(
-        "/hiring-ai-check",
+        "/ai-risk-check",
         data={"description": "It scans resumes and ranks candidates by fit score before a recruiter reviews them."},
     )
 
@@ -86,7 +86,7 @@ def test_check_does_not_persist_an_assessment_record(public_client):
     client, holder, engine = public_client
     holder.responses = list(HIGH_RISK_RESPONSES)
 
-    client.post("/hiring-ai-check", data={"description": "A resume screening tool."})
+    client.post("/ai-risk-check", data={"description": "A resume screening tool."})
 
     with Session(engine) as verify_session:
         assert verify_session.query(AssessmentRecord).count() == 0
@@ -96,6 +96,6 @@ def test_public_rate_limit_is_stricter_than_authenticated_endpoints(public_clien
     client, holder, _engine = public_client
     holder.responses = HIGH_RISK_RESPONSES * 5
 
-    responses = [client.post("/hiring-ai-check", data={"description": "A resume tool."}) for _ in range(4)]
+    responses = [client.post("/ai-risk-check", data={"description": "A resume tool."}) for _ in range(4)]
 
     assert [r.status_code for r in responses] == [200, 200, 200, 429]
