@@ -599,3 +599,41 @@ def test_impact_assessment_shows_untitled_when_no_ai_system_named(web_client):
     doc_html = client.get(f"/assessments/{assessment_id}/impact-assessment").text
 
     assert "Untitled AI System" in doc_html
+
+
+def test_deadlines_page_shows_reassessment_due_date_for_named_system(web_client):
+    client, holder, _engine = web_client
+
+    assert "No assessed AI systems yet" in client.get("/deadlines").text
+
+    holder.responses = list(HIGH_RISK_CLASSIFICATION_RESPONSES)
+    assess_response = client.post(
+        "/assess",
+        data={
+            "ai_system_name": "Resume Screener",
+            "system_description": "An AI tool that screens and ranks job applicant resumes for an employer.",
+            "intended_purpose": "Recruitment and candidate evaluation for employers.",
+            "actor_role": "deployer",
+            "sector": "",
+            "as_of": "2026-01-15",
+        },
+    )
+    holder.responses = []
+    client.post(
+        "/report",
+        data={
+            "facts_json": _extract_hidden_value("facts_json", assess_response.text),
+            "classification_json": _extract_hidden_value("classification_json", assess_response.text),
+            "classification_llm_calls_json": _extract_hidden_value(
+                "classification_llm_calls_json", assess_response.text
+            ),
+            "as_of": _extract_hidden_value("as_of", assess_response.text),
+            "ai_system_name": "Resume Screener",
+        },
+    )
+
+    deadlines_html = client.get("/deadlines").text
+
+    assert "Resume Screener" in deadlines_html
+    assert "2026-01-15" in deadlines_html  # last assessed
+    assert "2027-01-15" in deadlines_html  # due 12 months later

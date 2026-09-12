@@ -19,6 +19,7 @@ from src.classification.classify import classify_system
 from src.evidence.assess import assess_all_obligations
 from src.evidence.file_ingestion import FileValidationError, extract_evidence_text
 from src.gaps.compute import compute_gaps
+from src.legal.deadlines import list_all_deadlines
 from src.legal.queries import find_crosswalks_by_requirement_key, find_requirement_by_key
 from src.legal.update_alerts import check_ai_system_for_updates
 from src.llm import LLMClient
@@ -252,6 +253,13 @@ def show_history(request: Request, session: Session = Depends(get_session)) -> H
             "ungrouped": ungrouped,
             "outdated_system_ids": outdated_system_ids,
         },
+    )
+
+
+@router.get("/deadlines", response_class=HTMLResponse)
+def show_deadlines(request: Request, session: Session = Depends(get_session)) -> HTMLResponse:
+    return templates.TemplateResponse(
+        request, "deadlines.html", {"deadlines": list_all_deadlines(session)}
     )
 
 

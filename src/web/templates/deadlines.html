@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+{% block title %}Deadlines — EU AI Act Compliance{% endblock %}
+{% block content %}
+<h2>Deadlines</h2>
+<p class="hint">One view across every AI system: when it's due for re-assessment
+(default: 12 months after the last assessment — not itself an AI Act requirement, a
+product default), and when a requirement that was not yet applicable at assessment time
+will come into force.</p>
+
+{% if not deadlines %}
+<p class="hint">No assessed AI systems yet. <a href="/">Start one</a>.</p>
+{% else %}
+<table>
+  <tr><th>AI system</th><th>Last assessed</th><th>Re-assessment due</th><th>Upcoming applicability</th></tr>
+  {% for d in deadlines %}
+  <tr>
+    <td><a href="/systems/{{ d.ai_system_id }}">{{ d.ai_system_name }}</a></td>
+    <td>{{ d.latest_as_of }}</td>
+    <td>
+      {{ d.reassessment_due_on }}
+      {% if d.is_overdue %}<span class="status-NON_COMPLIANT">Overdue</span>{% endif %}
+    </td>
+    <td>
+      {% for u in d.upcoming_applicability %}
+      <div>{{ u.category }} — applicable from <strong>{{ u.becomes_applicable_on }}</strong></div>
+      {% else %}
+      <span class="hint">—</span>
+      {% endfor %}
+    </td>
+  </tr>
+  {% endfor %}
+</table>
+{% endif %}
+{% endblock %}

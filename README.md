@@ -62,6 +62,10 @@ Every stage is a separate, independently-tested module — see `docs/architectur
   `/assessments/<id>/impact-assessment` restates the same citations, obligations, gaps,
   and review flags in a formal, numbered-section layout that prints cleanly to PDF —
   closing a gap the research confirmed nobody in this market has solved.
+- **One deadlines view across every AI system.** `/deadlines` shows each system's
+  re-assessment due date and any requirement that wasn't yet applicable at assessment
+  time but will become so on a known future date — computed from the same effective-date
+  data every classification already relies on, not a separate calendar to maintain.
 - **Citations link to the actual verbatim law**, not a bare code. Click a citation
   in the UI and the exact quoted Article/Annex text is right there — the same text
   ingested from EUR-Lex, not a paraphrase.
@@ -131,7 +135,7 @@ enforce the assessment data retention window (default 90 days).
 uv run pytest
 ```
 
-166 tests: unit/integration tests per module, 16 classification + 8 evidence golden
+174 tests: unit/integration tests per module, 16 classification + 8 evidence golden
 cases, and the adversarial suite — all offline via a fake LLM provider, so CI never
 needs a live API key. See `evals/README.md` for what these suites do and don't prove.
 

@@ -73,17 +73,21 @@ PDF" produces a clean document -- no new dependency. Directly answers a gap the
 research confirmed nobody in the market has solved ("no platform generates AI Impact
 Assessments for you").
 
-## Phase D — Deadlines dashboard + drift-triggered reassessment (S/M)
-**Depends on:** A. Aggregates, per system: re-assessment due date (`as_of` + N months),
+## Phase D — Deadlines dashboard + drift-triggered reassessment (S/M) — **dashboard half delivered**
+**Depended on:** A. `/deadlines` aggregates, per AI system: re-assessment due date
+(latest `as_of` + 12 months -- a product default, not itself an AI Act requirement),
 and any `NOT_APPLICABLE` classification that will flip to applicable on a known future
-date (Article 113 dates are already stored). One view instead of checking each system.
+date, computed from the same `ApplicabilityCondition.temporal_start` rows Article 113's
+dates were seeded into (Phase 1). One view instead of checking each system. See
+`src/legal/deadlines.py`.
 
 Sharper than a calendar reminder alone: orgs that catch AI issues via internal
 monitoring hit 87.5% compliance vs. 5.3% for externally-detected incidents — the real
-problem isn't "the assessment is old," it's "did the underlying system change." If a
-system's description/facts are edited, prompt a re-classification rather than waiting
-for a date to pass — a retrained/updated model is "a materially different risk object"
-even under the same name.
+problem isn't "the assessment is old," it's "did the underlying system change."
+**Not yet delivered:** drift-triggered reassessment (prompting a re-classification when
+a system's description/facts are edited) -- there's no facts-editing feature on an
+`AISystem` yet for an edit to trigger from. The dashboard's due-date half stands on its
+own; this half is still open.
 
 ## Phase E — Incident logging, Article 73 (M)
 **Depends on:** A (an incident belongs to a system). Net-new: no current feature covers
@@ -217,7 +221,7 @@ classification" as a merge-gate check, not a form to fill out after the fact.
 2. **C** (closes a confirmed market gap, no dependencies, cheap, also serves the
    fundraising-due-diligence persona directly) — **delivered**
 3. **K** (cheap, reuses existing logic, opens a second persona for ~S effort)
-4. **D, E** (natural extensions of A, moderate effort)
+4. **D, E** (natural extensions of A, moderate effort) — **D's dashboard half delivered**
 5. **F** (biggest real cost-reduction for actual users, independent)
 6. **G → H** (biggest lift, only worth it once ready for real multi-user/production use)
 7. **M** (GDPR — highest-leverage framework addition, directly overlaps existing
