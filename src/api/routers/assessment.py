@@ -20,6 +20,7 @@ from src.evidence.assess import assess_all_obligations
 from src.evidence.file_ingestion import FileValidationError, extract_evidence_text
 from src.gaps.compute import compute_gaps
 from src.legal.queries import find_crosswalks_by_requirement_key, find_requirement_by_key
+from src.legal.update_alerts import check_ai_system_for_updates
 from src.llm import LLMClient
 from src.obligations.mapping import Obligation, map_obligations
 from src.observability.assessment_log import list_recent_assessments, record_assessment, reconstruct_assessment
@@ -241,10 +242,16 @@ def show_history(request: Request, session: Session = Depends(get_session)) -> H
     all_assessments = list_recent_assessments(session)
     by_system_id = {s.id: [a for a in all_assessments if a.ai_system_id == s.id] for s in systems}
     ungrouped = [a for a in all_assessments if a.ai_system_id is None]
+    outdated_system_ids = {s.id for s in systems if check_ai_system_for_updates(session, s.id) is not None}
     return templates.TemplateResponse(
         request,
         "history.html",
-        {"systems": systems, "by_system_id": by_system_id, "ungrouped": ungrouped},
+        {
+            "systems": systems,
+            "by_system_id": by_system_id,
+            "ungrouped": ungrouped,
+            "outdated_system_ids": outdated_system_ids,
+        },
     )
 
 
@@ -256,8 +263,11 @@ def show_ai_system(
     if system is None:
         raise HTTPException(status_code=404, detail="AI system not found.")
     assessments = list_recent_assessments(session, ai_system_id=ai_system_id)
+    update_alert = check_ai_system_for_updates(session, ai_system_id)
     return templates.TemplateResponse(
-        request, "ai_system_detail.html", {"system": system, "assessments": assessments}
+        request,
+        "ai_system_detail.html",
+        {"system": system, "assessments": assessments, "update_alert": update_alert},
     )
 
 

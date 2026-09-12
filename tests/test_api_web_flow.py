@@ -20,11 +20,12 @@ from src.api.dependencies import get_llm_client
 from src.api.main import app
 from src.api.rate_limit import rate_limiter
 from src.legal.ingest import ingest_seed
+from src.legal.versioning import supersede_requirement
 from src.llm.fake_client import FakeCompletionProvider
 from src.llm.interface import LLMClient
 from src.observability.assessment_log import reconstruct_assessment
 from src.persistence.db import get_session
-from src.persistence.models import Base
+from src.persistence.models import Base, Requirement
 from schemas.classification import ClassificationResult
 
 HIGH_RISK_CLASSIFICATION_RESPONSES = [
@@ -461,3 +462,55 @@ def test_unknown_ai_system_returns_404(web_client):
     response = client.get("/systems/does-not-exist")
 
     assert response.status_code == 404
+
+
+def test_superseded_requirement_flags_system_as_outdated(web_client):
+    client, holder, engine = web_client
+
+    holder.responses = list(HIGH_RISK_CLASSIFICATION_RESPONSES)
+    assess_response = client.post(
+        "/assess",
+        data={
+            "ai_system_name": "Resume Screener",
+            "system_description": "An AI tool that screens and ranks job applicant resumes for an employer.",
+            "intended_purpose": "Recruitment and candidate evaluation for employers.",
+            "actor_role": "deployer",
+            "sector": "",
+            "as_of": "2026-09-09",
+        },
+    )
+    holder.responses = []
+    client.post(
+        "/report",
+        data={
+            "facts_json": _extract_hidden_value("facts_json", assess_response.text),
+            "classification_json": _extract_hidden_value("classification_json", assess_response.text),
+            "classification_llm_calls_json": _extract_hidden_value(
+                "classification_llm_calls_json", assess_response.text
+            ),
+            "as_of": _extract_hidden_value("as_of", assess_response.text),
+            "ai_system_name": "Resume Screener",
+        },
+    )
+
+    history_html = client.get("/history").text
+    assert "Update available" not in history_html
+
+    system_id = re.search(r'/systems/([\w-]+)', history_html).group(1)
+    assert "This conclusion may be outdated" not in client.get(f"/systems/{system_id}").text
+
+    with Session(engine) as write_session:
+        old = write_session.query(Requirement).filter_by(
+            requirement_key="EU-AI-ACT-ANNEXIII-4", superseded_by_id=None
+        ).one()
+        supersede_requirement(
+            write_session, old=old, new_summary="Updated.", new_primary_provision_id=old.primary_provision_id
+        )
+        write_session.commit()
+
+    history_html = client.get("/history").text
+    assert "Update available" in history_html
+
+    detail_html = client.get(f"/systems/{system_id}").text
+    assert "This conclusion may be outdated" in detail_html
+    assert "EU-AI-ACT-ANNEXIII-4" in detail_html

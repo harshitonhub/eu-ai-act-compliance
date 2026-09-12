@@ -48,15 +48,19 @@ grouped by system, with an "Ungrouped" section for one-off checks -- and each sy
 gets its own permalink (`/systems/{id}`) showing just its assessment history. See
 `src/systems/registry.py`.
 
-## Phase B — Regulatory update alerts (S)
-**Depends on:** A. **Why cheap:** the versioning infra (`supersede_requirement`,
-`superseded_by_id`) already exists from Phase 1 — this is the first feature to actually
-use it for something user-facing.
+## Phase B — Regulatory update alerts (S) — **delivered**
+**Depended on:** A. Reused the versioning infra (`supersede_requirement`,
+`superseded_by_id`) from Phase 1 for the first time for something user-facing.
 
-When a requirement gets superseded, flag every AI system whose latest assessment cited
-the old version: "this conclusion may be outdated — a newer version of EU-AI-ACT-ART9
-exists." No competitor surfaced in the research does this because most tools don't
-track requirement versions at all, let alone diff against a user's past conclusions.
+No assessment stores which exact requirement *version* it cited (only the stable
+`requirement_key`, since citations only ever come from the live, non-superseded row at
+query time) -- so "outdated" is inferred from timestamps instead: if a requirement_key
+has a version created after an AI system's latest assessment ran, that assessment's
+conclusion may be outdated. See `src/legal/update_alerts.py`. Surfaced as an "Update
+available" badge next to the system on `/history`, and a full banner ("this conclusion
+may be outdated — a newer version of X exists") on that system's `/systems/{id}` page.
+No competitor surfaced in the research does this because most tools don't track
+requirement versions at all, let alone diff against a user's past conclusions.
 
 ## Phase C — Auto-generated Impact Assessment / export (S)
 **Depends on:** nothing new — `ComplianceReport` already has every field needed.
@@ -206,7 +210,7 @@ classification" as a merge-gate check, not a form to fill out after the fact.
 
 ## Suggested build order
 
-1. **A → B** (foundation + the one genuinely novel differentiator, both cheap)
+1. **A → B** (foundation + the one genuinely novel differentiator, both cheap) — **delivered**
 2. **C** (closes a confirmed market gap, no dependencies, cheap, also serves the
    fundraising-due-diligence persona directly)
 3. **K** (cheap, reuses existing logic, opens a second persona for ~S effort)

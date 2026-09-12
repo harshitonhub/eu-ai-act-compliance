@@ -6,6 +6,14 @@
 <h2>{{ system.name }}</h2>
 {% if system.description %}<p>{{ system.description }}</p>{% endif %}
 
+{% if update_alert %}
+<div class="flag">
+  <strong>This conclusion may be outdated.</strong> A newer version of
+  {{ update_alert.outdated_requirement_keys | join(", ") }} exists since the latest
+  assessment ran. <a href="/">Re-assess this system</a> to check against the current text.
+</div>
+{% endif %}
+
 <h3>Assessment history ({{ assessments|length }})</h3>
 {% if assessments %}
 {{ t.assessment_table(assessments) }}

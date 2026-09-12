@@ -9,7 +9,11 @@
 {% endif %}
 
 {% for system in systems %}
-<h3><a href="/systems/{{ system.id }}">{{ system.name }}</a> <span class="hint">({{ system.assessment_count }} assessment{{ "s" if system.assessment_count != 1 else "" }})</span></h3>
+<h3>
+  <a href="/systems/{{ system.id }}">{{ system.name }}</a>
+  <span class="hint">({{ system.assessment_count }} assessment{{ "s" if system.assessment_count != 1 else "" }})</span>
+  {% if system.id in outdated_system_ids %}<span class="status-PARTIALLY_COMPLIANT">Update available</span>{% endif %}
+</h3>
 {{ t.assessment_table(by_system_id[system.id]) }}
 {% endfor %}
 
