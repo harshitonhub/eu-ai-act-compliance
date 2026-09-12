@@ -20,4 +20,66 @@
 {% else %}
 <p class="hint">No assessments yet for this system.</p>
 {% endif %}
+
+<h3>Incidents ({{ incidents|length }})</h3>
+<p class="hint">Article 73 reporting deadlines, counted from when the incident was
+detected — not the report date.</p>
+
+{% if incidents %}
+<table>
+  <tr><th>Detected</th><th>Category</th><th>Description</th><th>Deadline</th><th>Status</th><th></th></tr>
+  {% for i in incidents %}
+  <tr>
+    <td>{{ i.detected_at }}</td>
+    <td>{{ i.severity_label }}</td>
+    <td>{{ i.description }}</td>
+    <td>
+      {{ i.deadline }}
+      <details class="citation-detail">
+        <summary>{{ i.citation }}</summary>
+        <pre>{{ i.citation_text }}</pre>
+      </details>
+    </td>
+    <td>
+      {% if i.reported_at %}
+      <span class="status-COMPLIANT">Reported</span>
+      {% elif i.is_overdue %}
+      <span class="status-NON_COMPLIANT">Overdue</span>
+      {% else %}
+      <span class="status-PARTIALLY_COMPLIANT">Not yet reported</span>
+      {% endif %}
+    </td>
+    <td>
+      {% if not i.reported_at %}
+      <form method="post" action="/incidents/{{ i.id }}/mark-reported">
+        <button type="submit">Mark reported</button>
+      </form>
+      {% endif %}
+    </td>
+  </tr>
+  {% endfor %}
+</table>
+{% else %}
+<p class="hint">No incidents logged for this system.</p>
+{% endif %}
+
+<details>
+  <summary>Report a new incident</summary>
+  <form method="post" action="/systems/{{ system.id }}/incidents">
+    <label for="severity">Category</label>
+    <select id="severity" name="severity" required>
+      {% for value, label in severity_options.items() %}
+      <option value="{{ value.value }}">{{ label }}</option>
+      {% endfor %}
+    </select>
+
+    <label for="description">What happened</label>
+    <textarea id="description" name="description" required></textarea>
+
+    <label for="detected_at">Date the provider/deployer became aware</label>
+    <input id="detected_at" name="detected_at" type="date" value="{{ today }}" required>
+
+    <button type="submit">Log incident</button>
+  </form>
+</details>
 {% endblock %}

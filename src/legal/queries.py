@@ -124,3 +124,15 @@ def find_crosswalks_by_requirement_key(session: Session, requirement_key: str) -
         )
         for cw in session.scalars(stmt).all()
     ]
+
+
+def find_provision_text_by_citation(session: Session, citation: str) -> str | None:
+    """Verbatim text of the current (non-superseded) version of a standalone provision,
+    by its citation -- for provisions ingested without a Requirement layer on top (e.g.
+    Article 73, Article 3's definitions), unlike find_requirement_by_key."""
+    stmt = (
+        select(LegalProvision.text)
+        .where(LegalProvision.citation == citation)
+        .where(LegalProvision.superseded_by_id.is_(None))
+    )
+    return session.scalars(stmt).first()

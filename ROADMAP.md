@@ -89,10 +89,19 @@ a system's description/facts are edited) -- there's no facts-editing feature on 
 `AISystem` yet for an edit to trigger from. The dashboard's due-date half stands on its
 own; this half is still open.
 
-## Phase E — Incident logging, Article 73 (M)
-**Depends on:** A (an incident belongs to a system). Net-new: no current feature covers
-this at all. New `Incident` table, deadline countdown (2 days for severe/widespread, 15
-otherwise, per the Article 73 text), reported/not-reported state.
+## Phase E — Incident logging, Article 73 (M) — **delivered**
+**Depended on:** A (an incident belongs to a system). New `Incident` table, deadline
+countdown, reported/not-reported state, surfaced on each AI system's `/systems/{id}`
+page (log a new incident, see open ones with their deadline and citation, mark
+reported).
+
+Article 73's actual text has three deadline tiers, not two -- verified against the
+verbatim text rather than assumed from this roadmap's original two-tier description:
+**15 days** by default (Art 73(2)); **10 days** for death or serious health harm (Art
+73(4), citing Art 3(49)(a)); **2 days** for critical-infrastructure disruption or
+widespread infringement (Art 73(3), citing Art 3(49)(b) and Art 3(61)). Ingested Article
+73 plus the two Article 3 definition points it references (not the whole 68-point
+Definitions article) into the existing AI Act source. See `src/incidents/registry.py`.
 
 ## Phase F — Reusable evidence vault (M)
 **Independent**, but touches the evidence-submission UI significantly. New
@@ -221,7 +230,7 @@ classification" as a merge-gate check, not a form to fill out after the fact.
 2. **C** (closes a confirmed market gap, no dependencies, cheap, also serves the
    fundraising-due-diligence persona directly) — **delivered**
 3. **K** (cheap, reuses existing logic, opens a second persona for ~S effort)
-4. **D, E** (natural extensions of A, moderate effort) — **D's dashboard half delivered**
+4. **D, E** (natural extensions of A, moderate effort) — **D's dashboard half and E delivered**
 5. **F** (biggest real cost-reduction for actual users, independent)
 6. **G → H** (biggest lift, only worth it once ready for real multi-user/production use)
 7. **M** (GDPR — highest-leverage framework addition, directly overlaps existing

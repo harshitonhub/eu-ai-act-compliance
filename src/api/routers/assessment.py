@@ -5,13 +5,13 @@ from datetime import date
 from pathlib import Path
 
 from fastapi import APIRouter, Depends, Form, HTTPException, Request
-from fastapi.responses import HTMLResponse
+from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
 from sqlalchemy.orm import Session
 from starlette.datastructures import UploadFile
 
 from schemas.classification import ClassificationResult
-from schemas.enums import ActorRole
+from schemas.enums import ActorRole, IncidentSeverity
 from schemas.facts import ExtractedFacts
 from src.api.dependencies import get_llm_client
 from src.api.rate_limit import rate_limit
@@ -19,6 +19,12 @@ from src.classification.classify import classify_system
 from src.evidence.assess import assess_all_obligations
 from src.evidence.file_ingestion import FileValidationError, extract_evidence_text
 from src.gaps.compute import compute_gaps
+from src.incidents.registry import (
+    SEVERITY_LABELS,
+    create_incident,
+    list_incidents_for_system,
+    mark_reported,
+)
 from src.legal.deadlines import list_all_deadlines
 from src.legal.queries import find_crosswalks_by_requirement_key, find_requirement_by_key
 from src.legal.update_alerts import check_ai_system_for_updates
@@ -275,8 +281,45 @@ def show_ai_system(
     return templates.TemplateResponse(
         request,
         "ai_system_detail.html",
-        {"system": system, "assessments": assessments, "update_alert": update_alert},
+        {
+            "system": system,
+            "assessments": assessments,
+            "update_alert": update_alert,
+            "incidents": list_incidents_for_system(session, ai_system_id),
+            "severity_options": SEVERITY_LABELS,
+            "today": date.today().isoformat(),
+        },
     )
+
+
+@router.post("/systems/{ai_system_id}/incidents", response_class=HTMLResponse)
+def report_incident(
+    ai_system_id: str,
+    severity: str = Form(...),
+    description: str = Form(...),
+    detected_at: str = Form(...),
+    session: Session = Depends(get_session),
+) -> HTMLResponse:
+    if get_ai_system(session, ai_system_id) is None:
+        raise HTTPException(status_code=404, detail="AI system not found.")
+    create_incident(
+        session,
+        ai_system_id=ai_system_id,
+        severity=IncidentSeverity(severity),
+        description=description,
+        detected_at=date.fromisoformat(detected_at),
+    )
+    return RedirectResponse(f"/systems/{ai_system_id}", status_code=303)
+
+
+@router.post("/incidents/{incident_id}/mark-reported", response_class=HTMLResponse)
+def mark_incident_reported(
+    incident_id: str, request: Request, session: Session = Depends(get_session)
+) -> HTMLResponse:
+    incident = mark_reported(session, incident_id)
+    if incident is None:
+        raise HTTPException(status_code=404, detail="Incident not found.")
+    return RedirectResponse(f"/systems/{incident.ai_system_id}", status_code=303)
 
 
 @router.get("/assessments/{assessment_id}", response_class=HTMLResponse)

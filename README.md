@@ -66,6 +66,9 @@ Every stage is a separate, independently-tested module — see `docs/architectur
   re-assessment due date and any requirement that wasn't yet applicable at assessment
   time but will become so on a known future date — computed from the same effective-date
   data every classification already relies on, not a separate calendar to maintain.
+- **Incident logging with real Article 73 deadlines.** Log a serious incident against
+  any AI system and get the actual reporting deadline — 2, 10, or 15 days depending on
+  severity, per Article 73's three tiers — with the verbatim citation, not a guess.
 - **Citations link to the actual verbatim law**, not a bare code. Click a citation
   in the UI and the exact quoted Article/Annex text is right there — the same text
   ingested from EUR-Lex, not a paraphrase.
@@ -135,7 +138,7 @@ enforce the assessment data retention window (default 90 days).
 uv run pytest
 ```
 
-174 tests: unit/integration tests per module, 16 classification + 8 evidence golden
+187 tests: unit/integration tests per module, 16 classification + 8 evidence golden
 cases, and the adversarial suite — all offline via a fake LLM provider, so CI never
 needs a live API key. See `evals/README.md` for what these suites do and don't prove.
 

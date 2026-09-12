@@ -637,3 +637,78 @@ def test_deadlines_page_shows_reassessment_due_date_for_named_system(web_client)
     assert "Resume Screener" in deadlines_html
     assert "2026-01-15" in deadlines_html  # last assessed
     assert "2027-01-15" in deadlines_html  # due 12 months later
+
+
+def test_report_and_resolve_incident_on_system_detail_page(web_client):
+    client, holder, _engine = web_client
+
+    holder.responses = list(HIGH_RISK_CLASSIFICATION_RESPONSES)
+    assess_response = client.post(
+        "/assess",
+        data={
+            "ai_system_name": "Traffic Controller",
+            "system_description": "An AI tool that manages traffic light timing.",
+            "intended_purpose": "Traffic flow optimization.",
+            "actor_role": "deployer",
+            "sector": "",
+            "as_of": "2026-09-09",
+        },
+    )
+    holder.responses = []
+    client.post(
+        "/report",
+        data={
+            "facts_json": _extract_hidden_value("facts_json", assess_response.text),
+            "classification_json": _extract_hidden_value("classification_json", assess_response.text),
+            "classification_llm_calls_json": _extract_hidden_value(
+                "classification_llm_calls_json", assess_response.text
+            ),
+            "as_of": _extract_hidden_value("as_of", assess_response.text),
+            "ai_system_name": "Traffic Controller",
+        },
+    )
+    history_html = client.get("/history").text
+    system_id = re.search(r'/systems/([\w-]+)', history_html).group(1)
+
+    report_response = client.post(
+        f"/systems/{system_id}/incidents",
+        data={
+            "severity": "critical_infrastructure_disruption",
+            "description": "Traffic lights stuck green on a major intersection for 20 minutes.",
+            "detected_at": "2026-09-01",
+        },
+        follow_redirects=True,
+    )
+
+    assert report_response.status_code == 200
+    detail_html = report_response.text
+    assert "Serious, irreversible disruption to critical infrastructure" in detail_html
+    assert "2026-09-03" in detail_html  # 2-day deadline from detection
+    assert "Overdue" in detail_html  # server clock is long past 2026-09-03
+    assert "Article 73(3)" in detail_html
+
+    incident_id = re.search(r'/incidents/([\w-]+)/mark-reported', detail_html).group(1)
+    resolved_response = client.post(f"/incidents/{incident_id}/mark-reported", follow_redirects=True)
+
+    assert resolved_response.status_code == 200
+    assert "Reported" in resolved_response.text
+    assert "Mark reported" not in resolved_response.text
+
+
+def test_report_incident_for_unknown_system_returns_404(web_client):
+    client, _holder, _engine = web_client
+
+    response = client.post(
+        "/systems/does-not-exist/incidents",
+        data={"severity": "widespread_infringement", "description": "x", "detected_at": "2026-09-01"},
+    )
+
+    assert response.status_code == 404
+
+
+def test_mark_unknown_incident_reported_returns_404(web_client):
+    client, _holder, _engine = web_client
+
+    response = client.post("/incidents/does-not-exist/mark-reported")
+
+    assert response.status_code == 404

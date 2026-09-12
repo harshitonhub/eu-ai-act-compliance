@@ -130,6 +130,24 @@ AI Act/GDPR obligations the way NIST AI RMF is. `FrameworkCrosswalk` rows for th
 frameworks coexist on the same requirement without conflict (`ART15` carries both NIST
 AI RMF and NIST CSF entries).
 
+## Incident reporting basis (Phase E)
+
+Article 73 ("Reporting of serious incidents") and the two Article 3 definition points
+it references -- point (49) "serious incident" and point (61) "widespread infringement"
+-- were added to the existing AI Act source for the incident-logging feature. Article 3
+defines ~68 terms; only these two points were ingested, each as its own narrowly-scoped
+`LegalProvision` (citation `"Article 3(49)"` / `"Article 3(61)"`) rather than the whole
+Definitions article, following the same point-level-citation-without-full-ingestion
+pattern already used for Annex III's numbered areas.
+
+Reading the verbatim text corrected an assumption in this project's own planning notes
+(ROADMAP.md originally said "2 days for severe/widespread, 15 otherwise"): Article 73
+actually sets **three** deadline tiers, not two -- 15 days by default (Art 73(2)), 10
+days for death or serious health harm (Art 73(4)), and 2 days for critical-infrastructure
+disruption or widespread infringement (Art 73(3)). The deterministic mapping lives in
+`src/incidents/registry.py`, keyed off `IncidentSeverity` rather than off free text, so
+the tier a given incident falls into is a lookup, not an LLM judgment call.
+
 ## What's deliberately out of scope for this slice
 
 - The remaining ~170 articles and 13 annexes of the AI Act (GPAI obligations, conformity

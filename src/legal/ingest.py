@@ -90,6 +90,18 @@ PROVISION_SEEDS = [
     ProvisionSeed(
         "Article 15", "Accuracy, robustness and cybersecurity", "article_15.txt", HIGH_RISK_GENERAL_START
     ),
+    # Chapter IX, Section 2 -- incident reporting deadlines, ground Phase E's incident log.
+    ProvisionSeed(
+        "Article 73", "Reporting of serious incidents", "article_73.txt", HIGH_RISK_GENERAL_START
+    ),
+    # Chapter I definitions Article 73 references for its deadline tiers -- only these two
+    # of Article 3's ~68 points are ingested, each as its own narrow provision.
+    ProvisionSeed(
+        "Article 3(49)", "Definition: 'serious incident'", "article_3_point_49.txt", PROHIBITED_PRACTICES_START
+    ),
+    ProvisionSeed(
+        "Article 3(61)", "Definition: 'widespread infringement'", "article_3_point_61.txt", PROHIBITED_PRACTICES_START
+    ),
 ]
 
 # One requirement per Section 2 article -- the obligations that attach once a system is

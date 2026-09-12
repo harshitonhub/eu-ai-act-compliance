@@ -15,7 +15,7 @@ from sqlalchemy import (
 )
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 
-from schemas.enums import ActorRole
+from schemas.enums import ActorRole, IncidentSeverity
 
 
 def _uuid() -> str:
@@ -202,6 +202,26 @@ class AISystem(Base):
     name: Mapped[str] = mapped_column(String(256))
     description: Mapped[str | None] = mapped_column(Text, nullable=True)
     owner_note: Mapped[str | None] = mapped_column(Text, nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=lambda: datetime.now(timezone.utc))
+
+
+class Incident(Base):
+    """A serious incident reported (or awaiting report) for an AI system, per Article 73.
+
+    Unlike AssessmentRecord.ai_system_id, this FK is required -- an incident always
+    belongs to exactly one system (Phase E). `detected_at` is when the provider/deployer
+    became aware, per Article 73(2)-(4): that date, not the report date, is what starts
+    the reporting-deadline countdown -- see src/incidents/registry.py.
+    """
+
+    __tablename__ = "incidents"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=_uuid)
+    ai_system_id: Mapped[str] = mapped_column(ForeignKey("ai_systems.id"))
+    severity: Mapped[IncidentSeverity] = mapped_column(Enum(IncidentSeverity))
+    description: Mapped[str] = mapped_column(Text)
+    detected_at: Mapped[date] = mapped_column(Date)
+    reported_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=lambda: datetime.now(timezone.utc))
 
 

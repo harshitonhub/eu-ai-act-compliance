@@ -19,8 +19,13 @@ def test_ingest_seed_loads_source_document_and_provisions(session):
     assert citations == {
         "Article 5", "Article 6", "Annex III",
         "Article 9", "Article 10", "Article 11", "Article 12", "Article 13", "Article 14", "Article 15",
+        "Article 73", "Article 3(49)", "Article 3(61)",
     }
+    # Article 3(61) is a general-EU-law definition (widespread infringement) that
+    # doesn't itself mention "AI system" -- everything else ingested does.
     for provision in ai_act_provisions:
+        if provision.citation == "Article 3(61)":
+            continue
         assert "AI system" in provision.text or "AI practices" in provision.text
 
 

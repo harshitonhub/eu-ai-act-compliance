@@ -1,0 +1,7 @@
+Article 3, point (49)
+
+'serious incident' means an incident or malfunctioning of an AI system that directly or indirectly leads to any of the following:
+(a) the death of a person, or serious harm to a person's health;
+(b) a serious and irreversible disruption of the management or operation of critical infrastructure;
+(c) the infringement of obligations under Union law intended to protect fundamental rights;
+(d) serious harm to property or the environment;

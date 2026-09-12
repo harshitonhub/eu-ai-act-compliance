@@ -86,7 +86,28 @@
       "heading": "Accuracy, robustness and cybersecurity",
       "chapter": "Chapter III, Section 2",
       "extracted_at": "2026-09-10T00:00:00Z"
+    },
+    {
+      "citation": "Article 73",
+      "file": "article_73.txt",
+      "heading": "Reporting of serious incidents",
+      "chapter": "Chapter IX, Section 2",
+      "extracted_at": "2026-09-12T00:00:00Z"
+    },
+    {
+      "citation": "Article 3(49)",
+      "file": "article_3_point_49.txt",
+      "heading": "Definition: 'serious incident'",
+      "chapter": "Chapter I",
+      "extracted_at": "2026-09-12T00:00:00Z"
+    },
+    {
+      "citation": "Article 3(61)",
+      "file": "article_3_point_61.txt",
+      "heading": "Definition: 'widespread infringement'",
+      "chapter": "Chapter I",
+      "extracted_at": "2026-09-12T00:00:00Z"
     }
   ],
-  "excerpts_extraction_note": "Articles 9-15 were extracted from the same raw fetch as the Phase 1 seed (same raw_fetch_sha256) on 2026-09-10, when Phase 4's obligation mapping needed a legal basis for what obligations attach to a high-risk classification. No new HTTP fetch was needed since the full regulation text was already captured in the original fetch."
+  "excerpts_extraction_note": "Articles 9-15 were extracted from the same raw fetch as the Phase 1 seed (same raw_fetch_sha256) on 2026-09-10, when Phase 4's obligation mapping needed a legal basis for what obligations attach to a high-risk classification. Article 73 and Article 3 points (49) and (61) were extracted the same way on 2026-09-12 for Phase E's incident logging feature -- again the same raw_fetch_sha256, no new HTTP fetch needed. Article 3 in full defines ~68 terms; only the two points Article 73's deadline tiers actually reference were ingested, each as its own narrowly-scoped LegalProvision rather than ingesting the whole Definitions article."
 }

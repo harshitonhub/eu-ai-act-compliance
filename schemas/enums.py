@@ -50,3 +50,15 @@ class EvidenceDimension(str, enum.Enum):
     TRACEABILITY = "traceability"
     CONSISTENCY = "consistency"
     SUFFICIENCY = "sufficiency"
+
+
+class IncidentSeverity(str, enum.Enum):
+    """The four Article 3(49) 'serious incident' categories plus Article 3(61)
+    'widespread infringement' -- together, every category Article 73 sets a distinct
+    reporting deadline for. See src/incidents/registry.py for the deadline mapping."""
+
+    DEATH_OR_SERIOUS_HEALTH_HARM = "death_or_serious_health_harm"  # Art 3(49)(a)
+    CRITICAL_INFRASTRUCTURE_DISRUPTION = "critical_infrastructure_disruption"  # Art 3(49)(b)
+    FUNDAMENTAL_RIGHTS_INFRINGEMENT = "fundamental_rights_infringement"  # Art 3(49)(c)
+    PROPERTY_OR_ENVIRONMENT_HARM = "property_or_environment_harm"  # Art 3(49)(d)
+    WIDESPREAD_INFRINGEMENT = "widespread_infringement"  # Art 3(61)
