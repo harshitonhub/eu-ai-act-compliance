@@ -1,5 +1,6 @@
 """Deterministic ingestion of the seed legal corpus into the legal knowledge tables:
-the EU AI Act slice, GDPR Articles 22/35 (Phase M), and NIST AI RMF crosswalks (Phase N).
+the EU AI Act slice, GDPR Articles 22/35 (Phase M), NIST AI RMF crosswalks (Phase N),
+and NIST CSF crosswalks (Phase O).
 
 No LLM involved anywhere in this module. Legal text is read verbatim from
 legal/sources/<source>/*.txt; structured requirements, applicability conditions, and
@@ -401,7 +402,6 @@ GDPR_OBLIGATION_REQUIREMENTS = [
 @dataclass(frozen=True)
 class CrosswalkSeed:
     requirement_key: str
-    framework_name: str
     citation: str
     text_file: str
 
@@ -414,48 +414,69 @@ NIST_AI_RMF_URL = "https://nvlpubs.nist.gov/nistpubs/ai/NIST.AI.100-1.pdf"
 # requirement, except EU-AI-ACT-ART15 which covers three distinct properties (accuracy,
 # robustness, cybersecurity) that map to three separate MEASURE subcategories.
 NIST_CROSSWALK_SEEDS = [
-    CrosswalkSeed("EU-AI-ACT-ART9", NIST_AI_RMF_NAME, "GOVERN 1.4", "govern_1_4.txt"),
-    CrosswalkSeed("EU-AI-ACT-ART10", NIST_AI_RMF_NAME, "MAP 2.3", "map_2_3.txt"),
-    CrosswalkSeed("EU-AI-ACT-ART11", NIST_AI_RMF_NAME, "GOVERN 4.2", "govern_4_2.txt"),
-    CrosswalkSeed("EU-AI-ACT-ART12", NIST_AI_RMF_NAME, "MEASURE 2.4", "measure_2_4.txt"),
-    CrosswalkSeed("EU-AI-ACT-ART13", NIST_AI_RMF_NAME, "MEASURE 2.8", "measure_2_8.txt"),
-    CrosswalkSeed("EU-AI-ACT-ART14", NIST_AI_RMF_NAME, "GOVERN 3.2", "govern_3_2.txt"),
-    CrosswalkSeed("EU-AI-ACT-ART15", NIST_AI_RMF_NAME, "MEASURE 2.6", "measure_2_6.txt"),
-    CrosswalkSeed("EU-AI-ACT-ART15", NIST_AI_RMF_NAME, "MEASURE 2.7", "measure_2_7.txt"),
-    CrosswalkSeed("GDPR-ART22", NIST_AI_RMF_NAME, "GOVERN 3.2", "govern_3_2.txt"),
-    CrosswalkSeed("GDPR-ART35", NIST_AI_RMF_NAME, "MAP 5.1", "map_5_1.txt"),
+    CrosswalkSeed("EU-AI-ACT-ART9", "GOVERN 1.4", "govern_1_4.txt"),
+    CrosswalkSeed("EU-AI-ACT-ART10", "MAP 2.3", "map_2_3.txt"),
+    CrosswalkSeed("EU-AI-ACT-ART11", "GOVERN 4.2", "govern_4_2.txt"),
+    CrosswalkSeed("EU-AI-ACT-ART12", "MEASURE 2.4", "measure_2_4.txt"),
+    CrosswalkSeed("EU-AI-ACT-ART13", "MEASURE 2.8", "measure_2_8.txt"),
+    CrosswalkSeed("EU-AI-ACT-ART14", "GOVERN 3.2", "govern_3_2.txt"),
+    CrosswalkSeed("EU-AI-ACT-ART15", "MEASURE 2.6", "measure_2_6.txt"),
+    CrosswalkSeed("EU-AI-ACT-ART15", "MEASURE 2.7", "measure_2_7.txt"),
+    CrosswalkSeed("GDPR-ART22", "GOVERN 3.2", "govern_3_2.txt"),
+    CrosswalkSeed("GDPR-ART35", "MAP 5.1", "map_5_1.txt"),
+]
+
+NIST_CSF_NAME = "NIST CSF 2.0"
+NIST_CSF_URL = "https://nvlpubs.nist.gov/nistpubs/CSWP/NIST.CSWP.29.pdf"
+NIST_CSF_SOURCES_DIR = Path(__file__).resolve().parents[2] / "legal" / "sources" / "nist_csf_2_0"
+
+# Narrower than NIST_CROSSWALK_SEEDS (Phase O): CSF is general cybersecurity guidance,
+# not AI-specific, so it only meaningfully crosswalks against EU-AI-ACT-ART15
+# (accuracy, robustness, cybersecurity) rather than all seven high-risk obligations.
+NIST_CSF_CROSSWALK_SEEDS = [
+    CrosswalkSeed("EU-AI-ACT-ART15", "ID.RA-01", "id_ra_01.txt"),
+    CrosswalkSeed("EU-AI-ACT-ART15", "PR.IR-03", "pr_ir_03.txt"),
 ]
 
 
-def crosswalks_seeded(session: Session) -> bool:
-    return session.query(FrameworkCrosswalk).filter_by(framework_name=NIST_AI_RMF_NAME).first() is not None
+def crosswalks_seeded(session: Session, framework_name: str = NIST_AI_RMF_NAME) -> bool:
+    return session.query(FrameworkCrosswalk).filter_by(framework_name=framework_name).first() is not None
 
 
-def ingest_crosswalks(session: Session) -> None:
-    """Load the NIST AI RMF crosswalk annotations. No-op if already present.
+def _ingest_crosswalks(
+    session: Session, framework_name: str, source_url: str, sources_dir: Path, seeds: list[CrosswalkSeed]
+) -> None:
+    """Load one framework's crosswalk annotations. No-op if already present.
 
-    Requires the target Requirement rows (AI Act + GDPR) to already be seeded.
+    Requires the target Requirement rows to already be seeded.
     """
-    if crosswalks_seeded(session):
+    if crosswalks_seeded(session, framework_name):
         return
 
-    for seed in NIST_CROSSWALK_SEEDS:
+    for seed in seeds:
         requirement = (
             session.query(Requirement)
             .filter_by(requirement_key=seed.requirement_key, superseded_by_id=None)
             .one()
         )
-        text = (NIST_AI_RMF_SOURCES_DIR / seed.text_file).read_text()
+        text = (sources_dir / seed.text_file).read_text()
         session.add(
             FrameworkCrosswalk(
                 requirement_id=requirement.id,
-                framework_name=seed.framework_name,
+                framework_name=framework_name,
                 citation=seed.citation,
                 citation_text=text,
-                source_url=NIST_AI_RMF_URL,
+                source_url=source_url,
             )
         )
     session.commit()
+
+
+def ingest_crosswalks(session: Session) -> None:
+    """Load every voluntary-framework crosswalk. Each framework is independently
+    idempotent, so this is safe to call regardless of which are already present."""
+    _ingest_crosswalks(session, NIST_AI_RMF_NAME, NIST_AI_RMF_URL, NIST_AI_RMF_SOURCES_DIR, NIST_CROSSWALK_SEEDS)
+    _ingest_crosswalks(session, NIST_CSF_NAME, NIST_CSF_URL, NIST_CSF_SOURCES_DIR, NIST_CSF_CROSSWALK_SEEDS)
 
 
 def seed_is_present(session: Session) -> bool:

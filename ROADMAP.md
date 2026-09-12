@@ -155,10 +155,19 @@ properties). Shown as an additional citation on the same obligation card in the 
 not a separate assessment. Only the crosswalked subcategories were ingested, not the
 full 72-subcategory framework — see `docs/legal-methodology.md`.
 
-## Phase O — NIST CSF crosswalk (S/M)
-**Depends on:** N (reuses `FrameworkCrosswalk`). Narrower scope than N: NIST CSF is
-general cybersecurity, not AI-specific, so it only meaningfully crosswalks against
-`EU-AI-ACT-ART15` (accuracy/robustness/cybersecurity) rather than all seven obligations.
+## Phase O — NIST CSF crosswalk (S/M) — **delivered**
+Reused Phase N's `FrameworkCrosswalk` table with a second `framework_name` ("NIST CSF
+2.0"). Narrower scope than N, as planned: CSF is general cybersecurity guidance, not
+AI-specific, so it only crosswalks against `EU-AI-ACT-ART15` (accuracy/robustness/
+cybersecurity) -- 2 subcategories (`ID.RA-01`: vulnerability identification,
+`PR.IR-03`: resilience in normal/adverse situations), not spread across all 9 AI
+Act/GDPR obligations. `ART15` now carries crosswalk entries from both frameworks side
+by side in the report.
+
+With M, N, and O all delivered, the full public-domain multi-framework scope from the
+"Multi-framework scope" section above is complete: GDPR obligations plus NIST AI RMF
+and NIST CSF crosswalks, all verbatim-sourced, all citation-enforced, zero paid
+licenses.
 
 ---
 

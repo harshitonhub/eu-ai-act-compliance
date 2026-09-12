@@ -78,13 +78,14 @@ practices), Article 6 + Annex III (high-risk classification), Articles 9-15 (hig
 obligations), plus GDPR Article 22 (automated decision-making) and Article 35 (DPIA),
 which attach as additional obligations whenever a system is classified high-risk. Each
 of those 9 obligations is also crosswalked to its NIST AI RMF 1.0 equivalent (e.g.
-`EU-AI-ACT-ART14` -> `GOVERN 3.2`), shown alongside the obligation in the report rather
-than as a separate assessment — since NIST AI RMF is voluntary, not binding law. GPAI
-and transparency obligations, deployer-side obligations, most of the AI Act's ~180
-articles, most of GDPR's ~99 articles, and all but 9 of NIST AI RMF's ~72 subcategories
-are not yet ingested — the pipeline correctly returns `INSUFFICIENT_INFORMATION` for
-those categories rather than guessing. See `docs/legal-methodology.md`'s "What's
-deliberately out of scope" section.
+`EU-AI-ACT-ART14` -> `GOVERN 3.2`), and the accuracy/robustness/cybersecurity obligation
+(`EU-AI-ACT-ART15`) additionally crosswalks to NIST CSF 2.0 — both shown alongside the
+obligation in the report rather than as a separate assessment, since neither NIST
+framework is binding law. GPAI and transparency obligations, deployer-side obligations,
+most of the AI Act's ~180 articles, most of GDPR's ~99 articles, and all but a handful
+of NIST AI RMF's ~72 and NIST CSF's ~106 subcategories are not yet ingested — the
+pipeline correctly returns `INSUFFICIENT_INFORMATION` for those categories rather than
+guessing. See `docs/legal-methodology.md`'s "What's deliberately out of scope" section.
 
 ## Docs
 
@@ -121,7 +122,7 @@ enforce the assessment data retention window (default 90 days).
 uv run pytest
 ```
 
-148 tests: unit/integration tests per module, 16 classification + 8 evidence golden
+150 tests: unit/integration tests per module, 16 classification + 8 evidence golden
 cases, and the adversarial suite — all offline via a fake LLM provider, so CI never
 needs a live API key. See `evals/README.md` for what these suites do and don't prove.
 

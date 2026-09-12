@@ -122,6 +122,14 @@ AI RMF Core tables. As a U.S. federal government publication it's public domain 
 U.S.C. §105) -- unlike ISO 27001/42001 and SOC 2's AICPA criteria, which are
 copyrighted/paywalled and excluded from this project's scope entirely.
 
+**NIST CSF 2.0** (`legal/sources/nist_csf_2_0/`) is a fourth source, ingested the same
+way (Phase O), but narrower still: CSF is general cybersecurity guidance, not AI-specific,
+so it only meaningfully crosswalks against `EU-AI-ACT-ART15` (accuracy, robustness,
+cybersecurity) -- 2 subcategories (`ID.RA-01`, `PR.IR-03`), not spread across all 9
+AI Act/GDPR obligations the way NIST AI RMF is. `FrameworkCrosswalk` rows for the two
+frameworks coexist on the same requirement without conflict (`ART15` carries both NIST
+AI RMF and NIST CSF entries).
+
 ## What's deliberately out of scope for this slice
 
 - The remaining ~170 articles and 13 annexes of the AI Act (GPAI obligations, conformity
@@ -131,8 +139,8 @@ copyrighted/paywalled and excluded from this project's scope entirely.
   (transparency, information to be provided) are the natural next slice — not required
   for Phase M's first pass, which targeted the two articles directly overlapping the AI
   Act's high-risk obligations.
-- NIST AI RMF's remaining ~63 subcategories (Phase N ingested 9), and NIST CSF entirely
-  (Phase O, not yet started).
+- NIST AI RMF's remaining ~63 subcategories (Phase N ingested 9) and NIST CSF's
+  remaining ~104 subcategories (Phase O ingested 2, scoped to `EU-AI-ACT-ART15` only).
 - Commission implementing acts, AI Office guidance, and codes of practice.
 - Point-level `LegalProvision` rows for Article 5(1)(a)-(h) and Annex III's numbered areas.
 - An automated re-fetch/diff pipeline for legal-source-update (`legal-source-update` skill)

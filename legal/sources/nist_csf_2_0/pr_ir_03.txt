@@ -1,0 +1,3 @@
+PR.IR-03
+
+Mechanisms are implemented to achieve resilience requirements in normal and adverse situations.

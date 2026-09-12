@@ -1,0 +1,19 @@
+{
+  "source_document_key": "nist_csf_2_0",
+  "official_title": "The NIST Cybersecurity Framework (CSF) 2.0",
+  "short_name": "NIST CSF 2.0",
+  "publisher": "National Institute of Standards and Technology (NIST), U.S. Department of Commerce",
+  "publication_id": "NIST CSWP 29",
+  "doi": "https://doi.org/10.6028/NIST.CSWP.29",
+  "date_published": "2024-02-26",
+  "source_url": "https://nvlpubs.nist.gov/nistpubs/CSWP/NIST.CSWP.29.pdf",
+  "retrieval_method": "automated_fetch_verbatim_extraction",
+  "retrieval_note": "Fetched the official NIST publication PDF directly via HTTP GET (curl), extracted text with pypdf (no OCR, no LLM), then located each targeted subcategory's verbatim text by exact subcategory-ID search. Only 2 subcategories were ingested -- narrower than Phase N's NIST AI RMF crosswalk, since CSF is general cybersecurity guidance, not AI-specific, and only meaningfully crosswalks against EU-AI-ACT-ART15 (accuracy, robustness, cybersecurity) rather than all seven high-risk obligations. See ROADMAP.md Phase O.",
+  "raw_fetch_sha256": "3c31f46fee98cac0c4323453e5109291a213b4de7fef8c058af9bf67f717433c",
+  "retrieved_at": "2026-09-12T00:00:00Z",
+  "public_domain_note": "Published by a U.S. federal government agency; not subject to copyright in the United States (17 U.S.C. §105).",
+  "subcategories_ingested": [
+    {"citation": "ID.RA-01", "file": "id_ra_01.txt", "function": "IDENTIFY", "category": "Risk Assessment (ID.RA)"},
+    {"citation": "PR.IR-03", "file": "pr_ir_03.txt", "function": "PROTECT", "category": "Technology Infrastructure Resilience (PR.IR)"}
+  ]
+}
