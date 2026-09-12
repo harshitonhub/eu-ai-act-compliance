@@ -23,7 +23,7 @@ untrusted, never as instructions.
 | Access control | HTTP Basic Auth gates every assessment route (not `/health`); fails closed (500) if `APP_USERNAME`/`APP_PASSWORD` aren't configured, rather than an insecure default | `src/api/auth.py`; `tests/test_auth.py` |
 | Data retention | `AssessmentRecord` rows (which can carry sensitive evidence text) are deletable by age (`purge_expired_assessments`, default 90-day window) or on demand (`delete_assessment`) | `src/observability/retention.py`; `tests/test_retention.py`; run via `scripts/purge_expired_assessments.py` (cron or manual, no scheduler built) |
 | File upload validation | `.txt`/`.pdf`/`.docx` only, 5 MB cap, parse-or-reject as the content check | `src/evidence/file_ingestion.py`; `tests/test_file_ingestion.py` |
-| Rate limiting | Per-IP sliding window (10 requests/60s) on `/assess` and `/report` — the two endpoints that trigger paid LLM calls | `src/api/rate_limit.py`; `tests/test_rate_limit.py`; `tests/test_api_web_flow.py::test_rate_limit_blocks_excessive_requests_to_assess` |
+| Rate limiting | Per-IP sliding window: 10 requests/60s on the authenticated `/assess` and `/report`; a stricter 3 requests/60s on the public, no-auth `/hiring-ai-check`, since it has no login barrier to raise the cost of abuse | `src/api/rate_limit.py`; `tests/test_rate_limit.py`; `tests/test_api_web_flow.py::test_rate_limit_blocks_excessive_requests_to_assess`; `tests/test_hiring_check.py::test_public_rate_limit_is_stricter_than_authenticated_endpoints` |
 
 ## What's explicitly out of scope today
 

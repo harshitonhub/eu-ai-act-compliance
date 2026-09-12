@@ -19,6 +19,11 @@ from fastapi import HTTPException, Request, status
 WINDOW_SECONDS = 60
 MAX_REQUESTS_PER_WINDOW = 10
 
+# Stricter window for public, unauthenticated endpoints -- no login barrier means no
+# cost barrier either, so the quota has to do more work than the authenticated one.
+PUBLIC_WINDOW_SECONDS = 60
+PUBLIC_MAX_REQUESTS_PER_WINDOW = 3
+
 
 class RateLimiter:
     def __init__(self, *, window_seconds: float, max_requests: int):
@@ -46,8 +51,16 @@ class RateLimiter:
 
 
 rate_limiter = RateLimiter(window_seconds=WINDOW_SECONDS, max_requests=MAX_REQUESTS_PER_WINDOW)
+public_rate_limiter = RateLimiter(
+    window_seconds=PUBLIC_WINDOW_SECONDS, max_requests=PUBLIC_MAX_REQUESTS_PER_WINDOW
+)
 
 
 def rate_limit(request: Request) -> None:
     client_key = request.client.host if request.client else "unknown"
     rate_limiter.check(client_key)
+
+
+def public_rate_limit(request: Request) -> None:
+    client_key = request.client.host if request.client else "unknown"
+    public_rate_limiter.check(client_key)

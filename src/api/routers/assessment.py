@@ -11,7 +11,7 @@ from sqlalchemy.orm import Session
 from starlette.datastructures import UploadFile
 
 from schemas.classification import ClassificationResult
-from schemas.enums import ActorRole, ClassificationState
+from schemas.enums import ActorRole
 from schemas.facts import ExtractedFacts
 from src.api.dependencies import get_llm_client
 from src.api.rate_limit import rate_limit
@@ -28,21 +28,13 @@ from src.observability.serialization import llm_call_record_from_dict, llm_call_
 from src.persistence.db import get_session
 from src.reporting.report import build_report
 from src.review.triggers import determine_review_flags
+from src.web.copy import STATE_EXPLANATIONS
 
 router = APIRouter()
 
 TEMPLATES_DIR = Path(__file__).resolve().parents[2] / "web" / "templates"
 templates = Jinja2Templates(directory=str(TEMPLATES_DIR))
-
-# Plain-language gloss for each classification state -- purely presentational copy,
-# not a new legal conclusion, so it lives in the web layer, not schemas/classification.py.
-templates.env.globals["STATE_EXPLANATIONS"] = {
-    ClassificationState.YES.value: "Applies.",
-    ClassificationState.NO.value: "Does not apply.",
-    ClassificationState.POSSIBLY.value: "Uncertain — human review recommended.",
-    ClassificationState.INSUFFICIENT_INFORMATION.value: "Not enough information was provided to determine this.",
-    ClassificationState.NOT_APPLICABLE.value: "This requirement isn't in force yet as of the assessment date.",
-}
+templates.env.globals["STATE_EXPLANATIONS"] = STATE_EXPLANATIONS
 
 EVIDENCE_FIELD_PREFIX = "evidence__"
 EVIDENCE_FILE_FIELD_PREFIX = "evidence_file__"

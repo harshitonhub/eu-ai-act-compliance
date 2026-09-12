@@ -4,6 +4,23 @@ Ordered by dependency, not just preference — several later phases need a found
 earlier phases build. Effort is rough (S = hours, M = a day, L = multi-day). Nothing
 here is started; this is the plan, not a changelog.
 
+## Committed starting niche: hiring/recruitment AI (Annex III point 4)
+
+Decided over the other 7 Annex III categories for reasons that hold up independent of
+which category happened to get researched first: employment is the only **horizontal**
+Annex III category (every company that hires anyone is a potential deployer, unlike
+credit/infrastructure/migration/justice which are vertical-specific); most companies
+**deploy** rather than build recruitment AI (Workday/Greenhouse/HireVue-style tools),
+so the target user describes a vendor's tool rather than needing to understand a model
+they built themselves — a much lower usability bar; and it was the largest of the
+first three EU AI Act fines (€18M of €47M, for missing conformity docs and no human
+oversight). Not independently verified against the other 7 categories — a fair
+challenge to revisit if this niche underperforms.
+
+First build against this niche: a standalone, public, no-login "Hiring AI Check" —
+one text box, one plain-English answer, reusing the existing classification pipeline
+end to end. See `src/api/routers/hiring_check.py`.
+
 ## Why this matters now, concretely
 
 First EU AI Act enforcement action (August 2026) issued €47M across three cases: €18M

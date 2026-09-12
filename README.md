@@ -62,6 +62,14 @@ Every stage is a separate, independently-tested module — see `docs/architectur
   `evals/adversarial/README.md` for the full coverage map against the
   `adversarial-testing` skill's checklist.
 
+## Try it without logging in
+
+`/hiring-ai-check` is a standalone, public, no-auth page: describe a hiring/recruitment
+tool in one sentence, get one plain-English answer with a citation — no setup, no
+credentials. It's the committed starting niche (see `ROADMAP.md`), not the full
+workflow; it hands off to the full authenticated assessment for obligations and
+evidence tracking once a system is flagged high-risk.
+
 ## Scope
 
 Legal corpus covers a representative, not exhaustive, slice: Article 5 (prohibited
@@ -93,8 +101,9 @@ APP_USERNAME=<user> APP_PASSWORD=<password> ANTHROPIC_API_KEY=<key> uv run uvico
 `APP_USERNAME`/`APP_PASSWORD` gate every assessment route via HTTP Basic Auth; the
 server refuses to serve without them. `ANTHROPIC_API_KEY` is read by the `anthropic`
 SDK directly — omit it to fail fast at classification time rather than starting with a
-broken LLM client. `/assess` and `/report` are rate-limited (10 requests/60s per IP) —
-see `docs/security-model.md`.
+broken LLM client. `/assess` and `/report` are rate-limited (10 requests/60s per IP);
+`/hiring-ai-check` is public and rate-limited harder (3 requests/60s per IP) since it
+has no auth barrier at all — see `docs/security-model.md`.
 
 Run `python scripts/purge_expired_assessments.py` periodically (e.g. via cron) to
 enforce the assessment data retention window (default 90 days).
@@ -105,7 +114,7 @@ enforce the assessment data retention window (default 90 days).
 uv run pytest
 ```
 
-136 tests: unit/integration tests per module, 16 classification + 8 evidence golden
+140 tests: unit/integration tests per module, 16 classification + 8 evidence golden
 cases, and the adversarial suite — all offline via a fake LLM provider, so CI never
 needs a live API key. See `evals/README.md` for what these suites do and don't prove.
 

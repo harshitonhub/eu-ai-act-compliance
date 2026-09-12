@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+{% block title %}Hiring AI Check — EU AI Act Compliance{% endblock %}
+{% block content %}
+<h2>Is your hiring tool a problem under the EU AI Act?</h2>
+<p class="hint">Describe what the tool does in plain language — no login, no setup. One
+question, one answer. For a full compliance assessment across all obligations, use the
+<a href="/">full assessment</a> instead.</p>
+
+{% if error %}<p class="flag">{{ error }}</p>{% endif %}
+
+<form method="post" action="/hiring-ai-check">
+  <label for="description">What does the hiring or recruitment tool do?</label>
+  <textarea id="description" name="description" required placeholder="e.g. It scans resumes and ranks candidates by fit score before a recruiter reviews them.">{{ description or "" }}</textarea>
+  <button type="submit">Check <span class="htmx-indicator">…</span></button>
+</form>
+
+{% if high_risk %}
+<h3>Result</h3>
+
+<div class="obligation-block">
+  <strong>Prohibited practice check</strong>
+  <p>
+    <span class="state-{{ prohibited.state.value }}">{{ prohibited.state.value }}</span>
+    <span class="confidence">{{ (prohibited.confidence * 100) | round | int }}% confidence</span>
+  </p>
+  <p class="explanation">{{ STATE_EXPLANATIONS[prohibited.state.value] }}</p>
+  <p>{{ prohibited.rationale }}</p>
+  {% for c in prohibited.cited_requirements %}
+  <details class="citation-detail">
+    <summary>{{ c.requirement_key }} ({{ c.citation }})</summary>
+    <pre>{{ citation_texts.get(c.requirement_key, "Full text unavailable.") }}</pre>
+  </details>
+  {% endfor %}
+</div>
+
+<div class="obligation-block">
+  <strong>High-risk check</strong>
+  <p>
+    <span class="state-{{ high_risk.state.value }}">{{ high_risk.state.value }}</span>
+    <span class="confidence">{{ (high_risk.confidence * 100) | round | int }}% confidence</span>
+  </p>
+  <p class="explanation">{{ STATE_EXPLANATIONS[high_risk.state.value] }}</p>
+  <p>{{ high_risk.rationale }}</p>
+  {% for c in high_risk.cited_requirements %}
+  <details class="citation-detail">
+    <summary>{{ c.requirement_key }} ({{ c.citation }})</summary>
+    <pre>{{ citation_texts.get(c.requirement_key, "Full text unavailable.") }}</pre>
+  </details>
+  {% endfor %}
+</div>
+
+{% if high_risk.state.value in ("YES", "POSSIBLY") %}
+<p class="hint">If this is high-risk, obligations under Articles 9-15 (risk management,
+technical documentation, human oversight, and more) apply. Run the
+<a href="/">full assessment</a> to see them and track evidence against each one.</p>
+{% endif %}
+{% endif %}
+{% endblock %}
