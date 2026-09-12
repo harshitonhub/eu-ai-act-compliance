@@ -1,0 +1,187 @@
+{% extends "base.html" %}
+{% block title %}AI Impact Assessment — {{ ai_system_name or "Untitled System" }}{% endblock %}
+{% block body_class %}wide{% endblock %}
+
+{% block extra_style %}
+.doc-toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+}
+.doc-title {
+  text-align: center;
+  padding: 1.5rem 0 2rem;
+  border-bottom: 2px solid var(--text);
+  margin-bottom: 2rem;
+}
+.doc-title .doc-eyebrow {
+  font-size: 0.8rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+.doc-title h1 { margin: 0.4rem 0; font-size: 1.9rem; }
+.doc-meta {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.4rem 2rem;
+  font-size: 0.9rem;
+  color: var(--text-muted);
+  max-width: 480px;
+  margin: 1rem auto 0;
+  text-align: left;
+}
+.doc-meta strong { color: var(--text); }
+.doc-section { margin-top: 2.5rem; break-inside: avoid; }
+.doc-section h2 {
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 0.4rem;
+}
+.doc-footer {
+  margin-top: 3rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--border);
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+dl.fact-list { display: grid; grid-template-columns: max-content 1fr; gap: 0.5rem 1rem; }
+dl.fact-list dt { font-weight: 600; color: var(--text-muted); }
+dl.fact-list dd { margin: 0; }
+{% endblock %}
+
+{% block content %}
+<div class="doc-toolbar no-print">
+  <a href="/assessments/{{ assessment_id }}">← Back to report</a>
+  <button type="button" onclick="window.print()">Print / Save as PDF</button>
+</div>
+
+<div class="doc-title">
+  <div class="doc-eyebrow">AI Impact Assessment</div>
+  <h1>{{ ai_system_name or "Untitled AI System" }}</h1>
+  <div class="doc-meta">
+    <span><strong>Assessment ID</strong></span><span><code>{{ assessment_id }}</code></span>
+    <span><strong>Generated</strong></span><span>{{ created_at.strftime("%Y-%m-%d %H:%M UTC") }}</span>
+    <span><strong>Assessed as of</strong></span><span>{{ report.as_of }}</span>
+    <span><strong>Legal basis</strong></span><span>EU AI Act (2024/1689), GDPR (2016/679)</span>
+  </div>
+</div>
+
+<div class="doc-section">
+  <h2>1. System Description</h2>
+  <dl class="fact-list">
+    <dt>Description</dt><dd>{{ report.facts.system_description }}</dd>
+    <dt>Intended purpose</dt><dd>{{ report.facts.intended_purpose }}</dd>
+    {% if report.facts.actor_roles %}<dt>Actor role(s)</dt><dd>{{ report.facts.actor_roles | map(attribute="value") | join(", ") }}</dd>{% endif %}
+    {% if report.facts.sector %}<dt>Sector</dt><dd>{{ report.facts.sector }}</dd>{% endif %}
+    {% if report.facts.deployment_context %}<dt>Deployment context</dt><dd>{{ report.facts.deployment_context }}</dd>{% endif %}
+    {% if report.facts.affected_persons_description %}<dt>Affected persons</dt><dd>{{ report.facts.affected_persons_description }}</dd>{% endif %}
+    {% if report.facts.decisions_or_outcomes_influenced %}<dt>Decisions/outcomes influenced</dt><dd>{{ report.facts.decisions_or_outcomes_influenced }}</dd>{% endif %}
+    {% if report.facts.technology_description %}<dt>Technology</dt><dd>{{ report.facts.technology_description }}</dd>{% endif %}
+    {% if report.facts.human_oversight_description %}<dt>Human oversight</dt><dd>{{ report.facts.human_oversight_description }}</dd>{% endif %}
+    {% if report.facts.uses_biometric_data is not none %}<dt>Uses biometric data</dt><dd>{{ "Yes" if report.facts.uses_biometric_data else "No" }}</dd>{% endif %}
+    {% if report.facts.uses_profiling is not none %}<dt>Uses profiling</dt><dd>{{ "Yes" if report.facts.uses_profiling else "No" }}</dd>{% endif %}
+  </dl>
+</div>
+
+<div class="doc-section">
+  <h2>2. Classification Results</h2>
+  <table>
+    <tr><th>Category</th><th>State</th><th>Citations</th><th>Rationale</th></tr>
+    {% for a in report.classification.assessments %}
+    <tr>
+      <td>{{ a.category.value }}</td>
+      <td><span class="state-{{ a.state.value }}">{{ a.state.value }}</span></td>
+      <td>
+        {% for c in a.cited_requirements %}
+        <details class="citation-detail">
+          <summary>{{ c.requirement_key }} ({{ c.citation }})</summary>
+          <pre>{{ citation_texts.get(c.requirement_key, "Full text unavailable.") }}</pre>
+        </details>
+        {% endfor %}
+      </td>
+      <td>{{ a.rationale }}</td>
+    </tr>
+    {% endfor %}
+  </table>
+</div>
+
+<div class="doc-section">
+  <h2>3. Applicable Obligations ({{ report.obligations|length }})</h2>
+  {% if report.obligations %}
+  {% for o in report.obligations %}
+  <div class="obligation-block">
+    <strong>{{ o.requirement_key }}</strong> <span class="citation">({{ o.citation }})</span>
+    <p>{{ o.summary }}</p>
+    {% for cw in crosswalks.get(o.requirement_key, []) %}
+    <details class="citation-detail">
+      <summary>Also satisfies {{ cw.framework_name }} {{ cw.citation }}</summary>
+      <pre>{{ cw.citation_text }}</pre>
+    </details>
+    {% endfor %}
+  </div>
+  {% endfor %}
+  {% else %}
+  <p>No obligations apply.</p>
+  {% endif %}
+</div>
+
+<div class="doc-section">
+  <h2>4. Evidence &amp; Compliance Status</h2>
+  {% if report.evidence_assessments %}
+  <table>
+    <tr><th>Obligation</th><th>Status</th><th>Rationale</th></tr>
+    {% for ea in report.evidence_assessments %}
+    <tr>
+      <td>{{ ea.requirement_key }}</td>
+      <td class="status-{{ ea.status.value }}">{{ ea.status.value }}</td>
+      <td>{{ ea.rationale }}</td>
+    </tr>
+    {% endfor %}
+  </table>
+  {% else %}
+  <p>Not applicable — no obligations were triggered.</p>
+  {% endif %}
+</div>
+
+<div class="doc-section">
+  <h2>5. Gaps Identified ({{ report.gaps|length }})</h2>
+  {% if report.gaps %}
+  <ul>
+    {% for g in report.gaps %}
+    <li><strong>{{ g.requirement_key }}</strong> ({{ g.citation }}) — <span class="status-{{ g.evidence_status.value }}">{{ g.evidence_status.value }}</span>: {{ g.rationale }}</li>
+    {% endfor %}
+  </ul>
+  {% else %}
+  <p>No gaps identified.</p>
+  {% endif %}
+</div>
+
+<div class="doc-section">
+  <h2>6. Recommended Actions</h2>
+  {% if report.recommended_actions %}
+  <ul>{% for action in report.recommended_actions %}<li>{{ action }}</li>{% endfor %}</ul>
+  {% else %}
+  <p>None.</p>
+  {% endif %}
+</div>
+
+<div class="doc-section">
+  <h2>7. Human Review</h2>
+  {% if report.requires_human_review %}
+  {% for flag in report.review_flags %}
+  <div class="flag"><strong>{{ flag.trigger.value }}</strong>: {{ flag.detail }}</div>
+  {% endfor %}
+  {% else %}
+  <p>No review flags raised.</p>
+  {% endif %}
+</div>
+
+<div class="doc-footer">
+  <p>Generated by the EU AI Act Compliance Platform from assessment <code>{{ assessment_id }}</code>,
+  {{ created_at.strftime("%Y-%m-%d %H:%M UTC") }}. Every citation above links to the verbatim
+  legal text it was drawn from — see <code>docs/legal-methodology.md</code>. This document
+  restates already-established results; it introduces no new legal conclusions and is not a
+  substitute for legal advice.</p>
+</div>
+{% endblock %}

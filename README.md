@@ -58,6 +58,10 @@ Every stage is a separate, independently-tested module — see `docs/architectur
   gets amended, that system is flagged — "this conclusion may be outdated" — on
   `/history` and its own `/systems/{id}` page, without needing a new assessment to
   notice. See `src/legal/update_alerts.py`.
+- **Generates an actual AI Impact Assessment document**, not just a web report.
+  `/assessments/<id>/impact-assessment` restates the same citations, obligations, gaps,
+  and review flags in a formal, numbered-section layout that prints cleanly to PDF —
+  closing a gap the research confirmed nobody in this market has solved.
 - **Citations link to the actual verbatim law**, not a bare code. Click a citation
   in the UI and the exact quoted Article/Annex text is right there — the same text
   ingested from EUR-Lex, not a paraphrase.
@@ -127,7 +131,7 @@ enforce the assessment data retention window (default 90 days).
 uv run pytest
 ```
 
-163 tests: unit/integration tests per module, 16 classification + 8 evidence golden
+166 tests: unit/integration tests per module, 16 classification + 8 evidence golden
 cases, and the adversarial suite — all offline via a fake LLM provider, so CI never
 needs a live API key. See `evals/README.md` for what these suites do and don't prove.
 

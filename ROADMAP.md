@@ -62,13 +62,16 @@ may be outdated — a newer version of X exists") on that system's `/systems/{id
 No competitor surfaced in the research does this because most tools don't track
 requirement versions at all, let alone diff against a user's past conclusions.
 
-## Phase C — Auto-generated Impact Assessment / export (S)
-**Depends on:** nothing new — `ComplianceReport` already has every field needed.
-
-Print-friendly CSS + a formatted document view of the existing report data (no new
-dependency; browser "print to PDF" off clean CSS). Directly answers a gap the research
-confirmed nobody in the market has solved ("no platform generates AI Impact Assessments
-for you").
+## Phase C — Auto-generated Impact Assessment / export (S) — **delivered**
+`ComplianceReport` already had every field needed -- no new backend logic, just a new
+document-style template (`/assessments/{id}/impact-assessment`) restating the same
+already-established results (system description, classification, obligations +
+crosswalks, evidence status, gaps, recommended actions, review flags) in a formal,
+numbered-section layout instead of the compact web report. Print-friendly CSS
+(`@media print` in `base.html`) hides the nav/toolbar so the browser's own "print to
+PDF" produces a clean document -- no new dependency. Directly answers a gap the
+research confirmed nobody in the market has solved ("no platform generates AI Impact
+Assessments for you").
 
 ## Phase D — Deadlines dashboard + drift-triggered reassessment (S/M)
 **Depends on:** A. Aggregates, per system: re-assessment due date (`as_of` + N months),
@@ -212,7 +215,7 @@ classification" as a merge-gate check, not a form to fill out after the fact.
 
 1. **A → B** (foundation + the one genuinely novel differentiator, both cheap) — **delivered**
 2. **C** (closes a confirmed market gap, no dependencies, cheap, also serves the
-   fundraising-due-diligence persona directly)
+   fundraising-due-diligence persona directly) — **delivered**
 3. **K** (cheap, reuses existing logic, opens a second persona for ~S effort)
 4. **D, E** (natural extensions of A, moderate effort)
 5. **F** (biggest real cost-reduction for actual users, independent)

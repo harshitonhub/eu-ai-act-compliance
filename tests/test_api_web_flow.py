@@ -514,3 +514,88 @@ def test_superseded_requirement_flags_system_as_outdated(web_client):
     detail_html = client.get(f"/systems/{system_id}").text
     assert "This conclusion may be outdated" in detail_html
     assert "EU-AI-ACT-ANNEXIII-4" in detail_html
+
+
+def test_impact_assessment_document_view_renders_all_sections(web_client):
+    client, holder, _engine = web_client
+
+    holder.responses = list(HIGH_RISK_CLASSIFICATION_RESPONSES)
+    assess_response = client.post(
+        "/assess",
+        data={
+            "ai_system_name": "Resume Screener",
+            "system_description": "An AI tool that screens and ranks job applicant resumes for an employer.",
+            "intended_purpose": "Recruitment and candidate evaluation for employers.",
+            "actor_role": "deployer",
+            "sector": "",
+            "as_of": "2026-09-09",
+        },
+    )
+    holder.responses = []
+    report_response = client.post(
+        "/report",
+        data={
+            "facts_json": _extract_hidden_value("facts_json", assess_response.text),
+            "classification_json": _extract_hidden_value("classification_json", assess_response.text),
+            "classification_llm_calls_json": _extract_hidden_value(
+                "classification_llm_calls_json", assess_response.text
+            ),
+            "as_of": _extract_hidden_value("as_of", assess_response.text),
+            "ai_system_name": "Resume Screener",
+        },
+    )
+    assessment_id = _extract_assessment_id(report_response.text)
+
+    doc_response = client.get(f"/assessments/{assessment_id}/impact-assessment")
+
+    assert doc_response.status_code == 200
+    doc_html = doc_response.text
+    assert "AI Impact Assessment" in doc_html
+    assert "Resume Screener" in doc_html  # AI system name in the document title
+    assert "job applicant" in doc_html.lower()  # system description carried through
+    assert "EU-AI-ACT-ANNEXIII-4" in doc_html  # classification citation
+    assert "EU-AI-ACT-ART9" in doc_html  # obligation
+    assert "Gaps Identified" in doc_html
+    assert "Recommended Actions" in doc_html
+    assert "substitute for legal advice" in doc_html
+
+
+def test_impact_assessment_unknown_assessment_returns_404(web_client):
+    client, _holder, _engine = web_client
+
+    response = client.get("/assessments/does-not-exist/impact-assessment")
+
+    assert response.status_code == 404
+
+
+def test_impact_assessment_shows_untitled_when_no_ai_system_named(web_client):
+    client, holder, _engine = web_client
+
+    holder.responses = list(HIGH_RISK_CLASSIFICATION_RESPONSES)
+    assess_response = client.post(
+        "/assess",
+        data={
+            "system_description": "A customer service chatbot for order status inquiries.",
+            "intended_purpose": "Automate routine customer support.",
+            "actor_role": "",
+            "sector": "",
+            "as_of": "2026-09-09",
+        },
+    )
+    holder.responses = []
+    report_response = client.post(
+        "/report",
+        data={
+            "facts_json": _extract_hidden_value("facts_json", assess_response.text),
+            "classification_json": _extract_hidden_value("classification_json", assess_response.text),
+            "classification_llm_calls_json": _extract_hidden_value(
+                "classification_llm_calls_json", assess_response.text
+            ),
+            "as_of": _extract_hidden_value("as_of", assess_response.text),
+        },
+    )
+    assessment_id = _extract_assessment_id(report_response.text)
+
+    doc_html = client.get(f"/assessments/{assessment_id}/impact-assessment").text
+
+    assert "Untitled AI System" in doc_html

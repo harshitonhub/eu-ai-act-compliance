@@ -300,3 +300,40 @@ def show_past_assessment(
             "crosswalks": _crosswalks_for(session, reconstructed.obligations),
         },
     )
+
+
+@router.get("/assessments/{assessment_id}/impact-assessment", response_class=HTMLResponse)
+def show_impact_assessment(
+    assessment_id: str, request: Request, session: Session = Depends(get_session)
+) -> HTMLResponse:
+    """A formatted document view of the same, already-established report data -- no new
+    legal conclusions, per the compliance-report skill. Print-friendly CSS turns the
+    browser's own "print to PDF" into a filled-out AI Impact Assessment document, closing
+    the confirmed market gap: no platform in this space generates one for you."""
+    reconstructed = reconstruct_assessment(session, assessment_id)
+    if reconstructed is None:
+        raise HTTPException(status_code=404, detail="Assessment not found.")
+
+    report = build_report(
+        reconstructed.facts,
+        reconstructed.as_of,
+        reconstructed.classification,
+        reconstructed.obligations,
+        reconstructed.evidence_assessments,
+        reconstructed.gaps,
+        reconstructed.review_flags,
+    )
+    ai_system = get_ai_system(session, reconstructed.ai_system_id) if reconstructed.ai_system_id else None
+
+    return templates.TemplateResponse(
+        request,
+        "impact_assessment.html",
+        {
+            "report": report,
+            "assessment_id": reconstructed.assessment_id,
+            "created_at": reconstructed.created_at,
+            "ai_system_name": ai_system.name if ai_system is not None else None,
+            "citation_texts": _citation_texts_for(session, reconstructed.classification),
+            "crosswalks": _crosswalks_for(session, reconstructed.obligations),
+        },
+    )

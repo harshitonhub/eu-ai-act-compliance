@@ -7,6 +7,8 @@
 <p><strong>System:</strong> {{ report.facts.system_description }}</p>
 <p><strong>Intended purpose:</strong> {{ report.facts.intended_purpose }}</p>
 <p><strong>Assessed as of:</strong> {{ report.as_of }}</p>
+<p><a href="/assessments/{{ assessment_id }}/impact-assessment">View as formatted Impact Assessment document</a>
+(print or save as PDF from there)</p>
 
 {% if file_errors %}
 <h3>File upload errors</h3>
