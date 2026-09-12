@@ -63,7 +63,7 @@ def test_form_page_requires_no_auth(public_client):
     response = client.get("/hiring-ai-check")
 
     assert response.status_code == 200
-    assert "Is your hiring tool a problem" in response.text
+    assert "breaking EU law" in response.text
 
 
 def test_check_returns_plain_answer_with_citation(public_client):

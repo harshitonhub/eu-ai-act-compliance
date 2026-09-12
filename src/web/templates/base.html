@@ -274,9 +274,13 @@
     header { display: flex; align-items: center; }
     header nav a { font-weight: 500; font-size: 0.9rem; color: var(--text-muted); margin-left: 1.25rem; }
     header nav a:hover { color: var(--accent); }
+
+    body.wide main { max-width: 900px; }
+
+    {% block extra_style %}{% endblock %}
   </style>
 </head>
-<body hx-boost="true">
+<body hx-boost="true" class="{% block body_class %}{% endblock %}">
   <header>
     <a href="/">EU AI Act Compliance</a>
     <nav>
