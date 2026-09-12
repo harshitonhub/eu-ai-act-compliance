@@ -4,6 +4,17 @@ Ordered by dependency, not just preference — several later phases need a found
 earlier phases build. Effort is rough (S = hours, M = a day, L = multi-day). Nothing
 here is started; this is the plan, not a changelog.
 
+## Why this matters now, concretely
+
+First EU AI Act enforcement action (August 2026) issued €47M across three cases: €18M
+for hiring AI deployed without conformity assessment documentation or human oversight,
+€14M for a credit-scoring "black box" that denied consumers an explanation, €15M for a
+prohibited real-time emotion-recognition system. Those three cases map directly onto
+scenario types already in this project's golden dataset (Annex III-4 recruitment,
+Annex III-5 creditworthiness, Article 5(1)(f) emotion recognition) — not a coincidence
+worth burying, a direct proof point that this system is built for what regulators are
+actually fining.
+
 ## Phase A — AI system registry (S/M)
 **Unlocks:** B, D, E, and makes the history page group by system instead of a flat list.
 
@@ -30,10 +41,17 @@ dependency; browser "print to PDF" off clean CSS). Directly answers a gap the re
 confirmed nobody in the market has solved ("no platform generates AI Impact Assessments
 for you").
 
-## Phase D — Deadlines dashboard (S)
+## Phase D — Deadlines dashboard + drift-triggered reassessment (S/M)
 **Depends on:** A. Aggregates, per system: re-assessment due date (`as_of` + N months),
 and any `NOT_APPLICABLE` classification that will flip to applicable on a known future
 date (Article 113 dates are already stored). One view instead of checking each system.
+
+Sharper than a calendar reminder alone: orgs that catch AI issues via internal
+monitoring hit 87.5% compliance vs. 5.3% for externally-detected incidents — the real
+problem isn't "the assessment is old," it's "did the underlying system change." If a
+system's description/facts are edited, prompt a re-classification rather than waiting
+for a date to pass — a retrained/updated model is "a materially different risk object"
+even under the same name.
 
 ## Phase E — Incident logging, Article 73 (M)
 **Depends on:** A (an incident belongs to a system). Net-new: no current feature covers
@@ -74,11 +92,43 @@ lower-confidence follow-up if pursued at all.
 
 ---
 
+## Phase K — "Explain this rejection" mode (S)
+**Independent**, reuses all existing classification logic. A stripped-down single-
+purpose flow answering just "why was this decision high-risk / not high-risk" — aimed
+at the person fielding a candidate's or customer's question (HR, support), not the
+compliance officer running a full assessment. Directly answers a documented gap: "can
+you explain how this AI system makes hiring decisions?" is a question HR teams
+increasingly can't answer, and it's the literal accountability gap regulators are
+fining for (see the €14M credit-scoring "black box" case above). Reuses the plain-
+language state explanations and citation click-through already built.
+
+## Phase L — CI/API compliance check (M)
+**Independent.** Everything so far is a web form for a compliance officer. Engineering
+teams have a different complaint: GRC tooling built for quarterly audits collides with
+weekly release cycles, and the friction pushes teams toward "shadow AI" that bypasses
+governance entirely. A thin API wrapping the existing classification pipeline, callable
+from CI, targets that buyer directly — "does this change alter the system's risk
+classification" as a merge-gate check, not a form to fill out after the fact.
+
+## Buyer personas this now covers, and which phases serve them
+
+- **Compliance officer at an SME** (the original target): A, B, D, E, F, G, H
+- **Founder preparing for VC due diligence**: C (a document to hand an investor,
+  fast) — a different urgency than an ongoing governance program; investors explicitly
+  ask about human-in-the-loop, incident response, and who owns AI compliance
+- **HR/non-technical staff fielding a real question**: K
+- **Engineering team shipping weekly**: L
+
+---
+
 ## Suggested build order
 
 1. **A → B** (foundation + the one genuinely novel differentiator, both cheap)
-2. **C** (closes a confirmed market gap, no dependencies, cheap)
-3. **D, E** (natural extensions of A, moderate effort)
-4. **F** (biggest real cost-reduction for actual users, independent)
-5. **G → H** (biggest lift, only worth it once ready for real multi-user/production use)
-6. **I, J** (independent, do whenever — I is nearly free, J is content work)
+2. **C** (closes a confirmed market gap, no dependencies, cheap, also serves the
+   fundraising-due-diligence persona directly)
+3. **K** (cheap, reuses existing logic, opens a second persona for ~S effort)
+4. **D, E** (natural extensions of A, moderate effort)
+5. **F** (biggest real cost-reduction for actual users, independent)
+6. **G → H** (biggest lift, only worth it once ready for real multi-user/production use)
+7. **I, J, L** (independent, do whenever — I is nearly free, J is content work, L opens
+   the engineering-team persona whenever there's appetite for an API surface)
