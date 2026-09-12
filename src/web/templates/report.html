@@ -44,7 +44,15 @@
   <tr><th>Obligation</th><th>Evidence status</th><th>Rationale</th></tr>
   {% for ea in report.evidence_assessments %}
   <tr>
-    <td>{{ ea.requirement_key }}</td>
+    <td>
+      {{ ea.requirement_key }}
+      {% for cw in crosswalks.get(ea.requirement_key, []) %}
+      <details class="citation-detail">
+        <summary>Also satisfies {{ cw.framework_name }} {{ cw.citation }}</summary>
+        <pre>{{ cw.citation_text }}</pre>
+      </details>
+      {% endfor %}
+    </td>
     <td class="status-{{ ea.status.value }}">{{ ea.status.value }}</td>
     <td>{{ ea.rationale }}</td>
   </tr>

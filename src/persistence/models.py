@@ -137,6 +137,29 @@ class LegalException(Base):
     source_provision: Mapped["LegalProvision"] = relationship()
 
 
+class FrameworkCrosswalk(Base):
+    """A voluntary-framework citation crosswalked to an existing binding Requirement.
+
+    Not a new obligation -- an annotation showing the same obligation also satisfies a
+    voluntary framework's control (e.g. NIST AI RMF GOVERN 1.4), shown alongside the
+    obligation rather than triggering a parallel classification. See ROADMAP.md's
+    "Multi-framework scope" section for why voluntary frameworks (NIST) get this
+    treatment while binding law (GDPR) gets new Requirement rows instead.
+    """
+
+    __tablename__ = "framework_crosswalks"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=_uuid)
+    requirement_id: Mapped[str] = mapped_column(ForeignKey("requirements.id"))
+    framework_name: Mapped[str] = mapped_column(String(64))  # e.g. "NIST AI RMF 1.0"
+    citation: Mapped[str] = mapped_column(String(64))  # e.g. "GOVERN 1.4"
+    citation_text: Mapped[str] = mapped_column(Text)  # verbatim subcategory text, never LLM-paraphrased
+    source_url: Mapped[str] = mapped_column(Text)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=lambda: datetime.now(timezone.utc))
+
+    requirement: Mapped["Requirement"] = relationship()
+
+
 class RetrievalMethod(str, enum.Enum):
     MANUAL = "manual"
     AUTOMATED = "automated"

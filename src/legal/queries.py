@@ -11,6 +11,7 @@ from sqlalchemy.orm import Session
 from schemas.enums import ActorRole
 from src.persistence.models import (
     ApplicabilityCondition,
+    FrameworkCrosswalk,
     LegalException,
     LegalProvision,
     Requirement,
@@ -24,6 +25,14 @@ class RequirementResult:
     citation: str
     provision_text: str
     exceptions: tuple[str, ...]
+
+
+@dataclass(frozen=True)
+class CrosswalkResult:
+    framework_name: str
+    citation: str
+    citation_text: str
+    source_url: str
 
 
 def find_requirements(
@@ -95,3 +104,23 @@ def find_requirement_by_key(session: Session, requirement_key: str) -> Requireme
         provision_text=provision.text,
         exceptions=tuple(exceptions),
     )
+
+
+def find_crosswalks_by_requirement_key(session: Session, requirement_key: str) -> list[CrosswalkResult]:
+    """Voluntary-framework crosswalks (e.g. NIST AI RMF) for the current version of a
+    requirement, by its stable key. Empty list if the requirement has none or doesn't exist."""
+    stmt = (
+        select(FrameworkCrosswalk)
+        .join(Requirement, Requirement.id == FrameworkCrosswalk.requirement_id)
+        .where(Requirement.requirement_key == requirement_key)
+        .where(Requirement.superseded_by_id.is_(None))
+    )
+    return [
+        CrosswalkResult(
+            framework_name=cw.framework_name,
+            citation=cw.citation,
+            citation_text=cw.citation_text,
+            source_url=cw.source_url,
+        )
+        for cw in session.scalars(stmt).all()
+    ]

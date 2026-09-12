@@ -103,6 +103,25 @@ while NIST AI RMF/CSF get a different one (a `FrameworkCrosswalk` table, Phase N
 and why ISO 27001/42001 and SOC 2 are excluded outright (copyrighted text, cannot be
 quoted verbatim, real licensing cost).
 
+## Voluntary-framework crosswalks (Phase N)
+
+NIST AI RMF 1.0 (`legal/sources/nist_ai_rmf_1_0/`) is a third source, but is treated
+differently from GDPR: it's a voluntary framework, not binding law, so it doesn't create
+new `Requirement` rows or a new obligation path. Instead, a `FrameworkCrosswalk` row
+annotates an *existing* Requirement, showing that the same obligation also satisfies a
+NIST AI RMF subcategory (e.g. `EU-AI-ACT-ART14` -> `GOVERN 3.2`) -- displayed as an
+additional citation on the same obligation card, per ROADMAP.md's "Multi-framework
+scope" section.
+
+Only the 9 subcategories actually crosswalked were ingested, not NIST AI RMF's full 72
+subcategories across GOVERN/MAP/MEASURE/MANAGE -- the same proportionality principle as
+GDPR's 2-of-99-articles slice. Sourced directly from NIST's published PDF
+(`https://nvlpubs.nist.gov/nistpubs/ai/NIST.AI.100-1.pdf`), text extracted with `pypdf`
+(no OCR, no LLM), each subcategory located by its exact ID (e.g. "GOVERN 1.4:") in the
+AI RMF Core tables. As a U.S. federal government publication it's public domain (17
+U.S.C. §105) -- unlike ISO 27001/42001 and SOC 2's AICPA criteria, which are
+copyrighted/paywalled and excluded from this project's scope entirely.
+
 ## What's deliberately out of scope for this slice
 
 - The remaining ~170 articles and 13 annexes of the AI Act (GPAI obligations, conformity
@@ -112,6 +131,8 @@ quoted verbatim, real licensing cost).
   (transparency, information to be provided) are the natural next slice — not required
   for Phase M's first pass, which targeted the two articles directly overlapping the AI
   Act's high-risk obligations.
+- NIST AI RMF's remaining ~63 subcategories (Phase N ingested 9), and NIST CSF entirely
+  (Phase O, not yet started).
 - Commission implementing acts, AI Office guidance, and codes of practice.
 - Point-level `LegalProvision` rows for Article 5(1)(a)-(h) and Annex III's numbered areas.
 - An automated re-fetch/diff pipeline for legal-source-update (`legal-source-update` skill)

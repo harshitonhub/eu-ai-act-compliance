@@ -1,0 +1,3 @@
+GOVERN 3.2
+
+Policies and procedures are in place to define and differentiate roles and responsibilities for human-AI configurations and oversight of AI systems.

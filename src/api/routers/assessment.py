@@ -19,7 +19,7 @@ from src.classification.classify import classify_system
 from src.evidence.assess import assess_all_obligations
 from src.evidence.file_ingestion import FileValidationError, extract_evidence_text
 from src.gaps.compute import compute_gaps
-from src.legal.queries import find_requirement_by_key
+from src.legal.queries import find_crosswalks_by_requirement_key, find_requirement_by_key
 from src.llm import LLMClient
 from src.obligations.mapping import Obligation, map_obligations
 from src.observability.assessment_log import list_recent_assessments, record_assessment, reconstruct_assessment
@@ -52,6 +52,13 @@ def _citation_texts_for(session: Session, classification: ClassificationResult) 
         if result is not None:
             texts[key] = result.provision_text
     return texts
+
+
+def _crosswalks_for(session: Session, obligations: list[Obligation]) -> dict[str, list]:
+    """requirement_key -> voluntary-framework crosswalks (e.g. NIST AI RMF), for every
+    obligation. Shown as an additional citation on the obligation card, not a separate
+    obligation -- see FrameworkCrosswalk's docstring."""
+    return {o.requirement_key: find_crosswalks_by_requirement_key(session, o.requirement_key) for o in obligations}
 
 
 @router.get("/", response_class=HTMLResponse)
@@ -209,6 +216,7 @@ async def generate_report(
             "assessment_id": assessment_id,
             "file_errors": file_errors,
             "citation_texts": _citation_texts_for(session, classification),
+            "crosswalks": _crosswalks_for(session, obligations),
         },
     )
 
@@ -245,5 +253,6 @@ def show_past_assessment(
             "assessment_id": reconstructed.assessment_id,
             "file_errors": [],
             "citation_texts": _citation_texts_for(session, reconstructed.classification),
+            "crosswalks": _crosswalks_for(session, reconstructed.obligations),
         },
     )

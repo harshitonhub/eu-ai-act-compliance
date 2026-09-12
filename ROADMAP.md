@@ -146,12 +146,14 @@ whenever `high_risk` is YES/POSSIBLY, alongside the existing Article 9-15 obliga
 Article 5 (principles) and Articles 13/14 (transparency) are natural follow-ups, not
 required for this first slice.
 
-## Phase N — NIST AI RMF crosswalk (M)
-**Depends on:** nothing new — `Requirement` rows already exist to crosswalk against.
-Ingest NIST AI RMF's four functions (GOVERN/MAP/MEASURE/MANAGE) verbatim (US government,
-public domain). New `FrameworkCrosswalk` table maps existing `EU-AI-ACT-ART9`..`ART15`
-(and the new GDPR) requirements to their NIST equivalents. Shown as an additional
-citation on the same obligation card, not a separate assessment.
+## Phase N — NIST AI RMF crosswalk (M) — **delivered**
+New `FrameworkCrosswalk` table (`requirement_id` -> framework name + citation + verbatim
+text) maps the 7 AI Act Article 9-15 obligations and the 2 GDPR obligations to 9 NIST AI
+RMF 1.0 subcategories across GOVERN/MAP/MEASURE (ART15 crosswalks to two MEASURE
+subcategories, since it covers accuracy/robustness/cybersecurity as distinct
+properties). Shown as an additional citation on the same obligation card in the report,
+not a separate assessment. Only the crosswalked subcategories were ingested, not the
+full 72-subcategory framework — see `docs/legal-methodology.md`.
 
 ## Phase O — NIST CSF crosswalk (S/M)
 **Depends on:** N (reuses `FrameworkCrosswalk`). Narrower scope than N: NIST CSF is

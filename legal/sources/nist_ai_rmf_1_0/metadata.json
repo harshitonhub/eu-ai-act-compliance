@@ -1,0 +1,26 @@
+{
+  "source_document_key": "nist_ai_rmf_1_0",
+  "official_title": "Artificial Intelligence Risk Management Framework (AI RMF 1.0)",
+  "short_name": "NIST AI RMF 1.0",
+  "publisher": "National Institute of Standards and Technology (NIST), U.S. Department of Commerce",
+  "publication_id": "NIST AI 100-1",
+  "doi": "https://doi.org/10.6028/NIST.AI.100-1",
+  "date_published": "2023-01-26",
+  "source_url": "https://nvlpubs.nist.gov/nistpubs/ai/NIST.AI.100-1.pdf",
+  "retrieval_method": "automated_fetch_verbatim_extraction",
+  "retrieval_note": "Fetched the official NIST publication PDF directly via HTTP GET (curl), extracted text with pypdf (no OCR, no LLM), then located each targeted subcategory's verbatim text in Table 1-4 (AI RMF Core, Appendix format) by exact subcategory-ID search. Only the 9 subcategories actually crosswalked against existing EU AI Act / GDPR requirements were ingested -- not the full 72-subcategory framework -- proportional to what Phase N's crosswalk table needs, the same way GDPR ingestion was scoped to 2 of ~99 articles rather than the whole regulation.",
+  "raw_fetch_sha256": "7576edb531d9848825814ee88e28b1795d3a84b435b4b797d3670eafdc4a89f1",
+  "retrieved_at": "2026-09-12T00:00:00Z",
+  "public_domain_note": "Published by a U.S. federal government agency; not subject to copyright in the United States (17 U.S.C. §105). Distinct from ISO 27001/42001 and SOC 2's AICPA criteria, which are copyrighted/paywalled and were explicitly excluded from this project's multi-framework scope (see ROADMAP.md).",
+  "subcategories_ingested": [
+    {"citation": "GOVERN 1.4", "file": "govern_1_4.txt", "function": "GOVERN", "category": "GOVERN 1"},
+    {"citation": "GOVERN 3.2", "file": "govern_3_2.txt", "function": "GOVERN", "category": "GOVERN 3"},
+    {"citation": "GOVERN 4.2", "file": "govern_4_2.txt", "function": "GOVERN", "category": "GOVERN 4"},
+    {"citation": "MAP 2.3", "file": "map_2_3.txt", "function": "MAP", "category": "MAP 2"},
+    {"citation": "MAP 5.1", "file": "map_5_1.txt", "function": "MAP", "category": "MAP 5"},
+    {"citation": "MEASURE 2.4", "file": "measure_2_4.txt", "function": "MEASURE", "category": "MEASURE 2"},
+    {"citation": "MEASURE 2.6", "file": "measure_2_6.txt", "function": "MEASURE", "category": "MEASURE 2"},
+    {"citation": "MEASURE 2.7", "file": "measure_2_7.txt", "function": "MEASURE", "category": "MEASURE 2"},
+    {"citation": "MEASURE 2.8", "file": "measure_2_8.txt", "function": "MEASURE", "category": "MEASURE 2"}
+  ]
+}

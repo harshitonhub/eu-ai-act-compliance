@@ -149,6 +149,7 @@ def test_full_web_flow_facts_to_report_with_citations_gaps_and_review_flags(web_
     assert "Gaps (9)" in report_html  # all 9 obligations are gaps (1 non-compliant + 8 insufficient)
     assert "high_impact_high_risk" in report_html  # review flag for high_risk=YES
     assert "evidence_gap" in report_html  # review flag for the non-compliant/insufficient obligations
+    assert "GOVERN 1.4" in report_html  # NIST AI RMF crosswalk shown alongside EU-AI-ACT-ART9
 
     # Phase 6 DoD: the assessment just produced is fully reconstructable from stored data.
     assessment_id = _extract_assessment_id(report_html)

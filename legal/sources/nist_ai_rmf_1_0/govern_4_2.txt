@@ -1,0 +1,3 @@
+GOVERN 4.2
+
+Organizational teams document the risks and potential impacts of the AI technology they design, develop, deploy, evaluate, and use, and they communicate about the impacts more broadly.
