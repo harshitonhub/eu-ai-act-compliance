@@ -118,8 +118,21 @@ guessing. See `docs/legal-methodology.md`'s "What's deliberately out of scope" s
 | `docs/architecture.md` | Module layout and the boundaries that must hold |
 | `docs/legal-methodology.md` | Sourcing method, granularity decisions, versioning |
 | `docs/security-model.md` | Threat model, defenses, what's explicitly out of scope |
+| `docs/production-audit.md` | Self-audit: findings by severity, and the honest verdict |
+| `docs/eval-results.md` | Generated pass rates, confusion matrices, coverage gaps |
 | `evals/README.md` | Evaluation strategy across all three test suites |
 | `prompts/README.md` | Prompt versioning and role-by-role status |
+
+## See it running in 30 seconds
+
+```
+uv sync --frozen --extra dev
+uv run python scripts/demo.py
+```
+
+No API key, no database setup, nothing persisted — in-memory storage and a canned fake
+LLM, seeded with two tenants so the isolation is visible immediately. Credentials are
+printed on start. Then open <http://127.0.0.1:8000>.
 
 ## Running locally
 
@@ -155,7 +168,7 @@ enforce the assessment data retention window (default 90 days).
 uv run pytest
 ```
 
-229 tests: unit/integration tests per module, 25 adversarial cross-tenant isolation
+231 tests: unit/integration tests per module, 25 adversarial cross-tenant isolation
 cases, 16 classification + 8 evidence golden cases, and the adversarial prompt suite —
 all offline via a fake LLM provider, so CI never needs a live API key. See
 `evals/README.md` for what these suites do and don't prove.

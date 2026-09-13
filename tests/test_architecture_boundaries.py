@@ -5,7 +5,13 @@ delegated to an LLM.' Legal knowledge modules must never import the LLM layer.
 import ast
 from pathlib import Path
 
-DETERMINISTIC_PACKAGES = ["legal", "obligations", "gaps", "review", "retrieval", "reporting"]
+# Every package documented as deterministic. Kept in sync deliberately: a package that
+# is described as "no LLM" in its docstring but absent from this list is an unenforced
+# invariant, which is how the guarantee quietly stops being true.
+DETERMINISTIC_PACKAGES = [
+    "legal", "obligations", "gaps", "review", "retrieval", "reporting",
+    "systems", "incidents", "auth", "persistence",
+]
 SRC = Path(__file__).resolve().parents[1] / "src"
 
 

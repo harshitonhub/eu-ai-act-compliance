@@ -22,7 +22,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from sqlalchemy import select
 
 from schemas.enums import UserRole
-from src.auth.users import create_tenant, create_user
+from src.auth.users import WeakPasswordError, create_tenant, create_user
 from src.persistence.db import SessionLocal
 from src.persistence.models import Tenant, User
 
@@ -61,16 +61,17 @@ def main() -> None:
         password = getpass.getpass("Password: ")
         if password != getpass.getpass("Confirm password: "):
             parser.error("passwords did not match")
-        if len(password) < 12:
-            parser.error("use at least 12 characters")
 
-        user = create_user(
-            session,
-            tenant_id=tenant.id,
-            email=args.email,
-            password=password,
-            role=UserRole(args.role),
-        )
+        try:
+            user = create_user(
+                session,
+                tenant_id=tenant.id,
+                email=args.email,
+                password=password,
+                role=UserRole(args.role),
+            )
+        except WeakPasswordError as exc:
+            parser.error(str(exc))
 
     print(f"Created {user.email} ({user.role.value}) in tenant {tenant.name!r} [{tenant.id}]")
 

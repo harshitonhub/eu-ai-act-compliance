@@ -8,7 +8,7 @@ evals/golden/evidence_v1/README.md.
 from __future__ import annotations
 
 import json
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from pathlib import Path
 
 from src.evidence.assess import assess_evidence
@@ -26,6 +26,8 @@ class CaseResult:
     difficulty: str
     passed: bool
     mismatches: list[str]
+    # (expected_status, actual_status), for the report generator's confusion matrix.
+    observations: list[tuple[str, str, str]] = field(default_factory=list)
 
 
 @dataclass
@@ -76,9 +78,25 @@ def run_case(case: dict) -> CaseResult:
         )
 
     return CaseResult(
-        case_id=case["case_id"], difficulty=case["difficulty"], passed=not mismatches, mismatches=mismatches
+        case_id=case["case_id"],
+        difficulty=case["difficulty"],
+        passed=not mismatches,
+        mismatches=mismatches,
+        observations=[("evidence_status", case["expected_status"], result.status.value)],
     )
 
 
 def run_evidence_golden_suite(cases_dir: Path = GOLDEN_DIR) -> EvalReport:
     return EvalReport(case_results=[run_case(case) for case in load_cases(cases_dir)])
+
+
+if __name__ == "__main__":  # pragma: no cover -- convenience entrypoint, CI uses pytest
+    import sys
+    from pathlib import Path
+
+    sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+    print(
+        "Run the suites via `uv run pytest` (they are wired into the test suite), or\n"
+        "`uv run python scripts/generate_eval_report.py` to regenerate docs/eval-results.md\n"
+        "with pass rates, confusion matrices, and coverage gaps."
+    )

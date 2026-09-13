@@ -16,6 +16,27 @@ from schemas.enums import UserRole
 from src.auth.passwords import hash_password, verify_password
 from src.persistence.models import Tenant, User
 
+MIN_PASSWORD_LENGTH = 12
+
+
+class WeakPasswordError(ValueError):
+    """Raised instead of silently accepting a weak password."""
+
+
+def validate_password(password: str) -> None:
+    """Enforced here rather than at the CLI so every caller inherits it -- a signup route,
+    an admin UI, or a bulk import would each otherwise have to remember. Same reasoning as
+    tenant filtering living in the ORM layer: a policy enforced at one entry point is a
+    policy that stops existing the moment a second entry point appears.
+
+    Length only, deliberately: NIST SP 800-63B advises against composition rules
+    (mandatory symbols/digits), which push users toward predictable substitutions.
+    """
+    if len(password) < MIN_PASSWORD_LENGTH:
+        raise WeakPasswordError(
+            f"Password must be at least {MIN_PASSWORD_LENGTH} characters."
+        )
+
 
 def create_tenant(session: Session, name: str) -> Tenant:
     tenant = Tenant(name=name)
@@ -27,6 +48,7 @@ def create_tenant(session: Session, name: str) -> Tenant:
 def create_user(
     session: Session, *, tenant_id: str, email: str, password: str, role: UserRole
 ) -> User:
+    validate_password(password)
     user = User(
         tenant_id=tenant_id,
         email=email.strip().lower(),

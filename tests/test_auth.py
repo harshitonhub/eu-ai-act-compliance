@@ -15,7 +15,7 @@ from src.api.main import app
 from src.api.rate_limit import login_rate_limiter
 from src.auth.passwords import hash_password, verify_password
 from src.auth.sessions import COOKIE_NAME, issue_session, read_session
-from src.auth.users import authenticate, create_tenant, create_user
+from src.auth.users import MIN_PASSWORD_LENGTH, WeakPasswordError, authenticate, create_tenant, create_user
 from src.persistence.db import get_session
 from src.persistence.models import Base
 
@@ -67,6 +67,28 @@ def test_password_roundtrip():
     stored = hash_password(PASSWORD)
     assert verify_password(PASSWORD, stored)
     assert not verify_password("wrong", stored)
+
+
+def test_weak_password_is_rejected_by_the_service_not_just_the_cli(client):
+    """The policy lives in create_user so every caller inherits it -- a future signup
+    route or bulk import cannot bypass it by forgetting."""
+    with Session(client.engine) as s:
+        tenant = create_tenant(s, "Weak Co")
+        with pytest.raises(WeakPasswordError):
+            create_user(
+                s, tenant_id=tenant.id, email="weak@acme.test",
+                password="a" * (MIN_PASSWORD_LENGTH - 1), role=UserRole.MEMBER,
+            )
+
+
+def test_password_at_the_minimum_length_is_accepted(client):
+    with Session(client.engine) as s:
+        tenant = create_tenant(s, "Fine Co")
+        user = create_user(
+            s, tenant_id=tenant.id, email="fine@acme.test",
+            password="a" * MIN_PASSWORD_LENGTH, role=UserRole.MEMBER,
+        )
+        assert user.id
 
 
 def test_password_hash_is_salted_so_equal_passwords_differ():

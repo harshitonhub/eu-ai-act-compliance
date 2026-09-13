@@ -13,7 +13,7 @@ you'd measure actual model quality -- see evals/golden/classification_v1/README.
 from __future__ import annotations
 
 import json
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from datetime import date
 from pathlib import Path
 
@@ -37,6 +37,10 @@ class CaseResult:
     difficulty: str
     passed: bool
     mismatches: list[str]
+    # (category, expected_state, actual_state) per asserted category. Kept so the report
+    # generator can build a confusion matrix instead of only a pass/fail tally --
+    # "14/16 passed" hides *which* state the pipeline confused for which.
+    observations: list[tuple[str, str, str]] = field(default_factory=list)
 
 
 @dataclass
@@ -105,8 +109,10 @@ def run_case(session: Session, case: dict) -> CaseResult:
     result = classify_system(client, session, facts, as_of=as_of)
 
     mismatches = []
+    observations = []
     for category_value, expected_state in case["expected_states"].items():
         actual_state = result.for_category(ClassificationCategory(category_value)).state.value
+        observations.append((category_value, expected_state, actual_state))
         if actual_state != expected_state:
             mismatches.append(f"{category_value}: expected {expected_state}, got {actual_state}")
 
@@ -115,9 +121,22 @@ def run_case(session: Session, case: dict) -> CaseResult:
         difficulty=case["difficulty"],
         passed=not mismatches,
         mismatches=mismatches,
+        observations=observations,
     )
 
 
 def run_golden_suite(session: Session, cases_dir: Path = GOLDEN_DIR) -> EvalReport:
     ingest_seed(session)  # idempotent; guarantees the suite runs against the expected corpus
     return EvalReport(case_results=[run_case(session, case) for case in load_cases(cases_dir)])
+
+
+if __name__ == "__main__":  # pragma: no cover -- convenience entrypoint, CI uses pytest
+    import sys
+    from pathlib import Path
+
+    sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+    print(
+        "Run the suites via `uv run pytest` (they are wired into the test suite), or\n"
+        "`uv run python scripts/generate_eval_report.py` to regenerate docs/eval-results.md\n"
+        "with pass rates, confusion matrices, and coverage gaps."
+    )
