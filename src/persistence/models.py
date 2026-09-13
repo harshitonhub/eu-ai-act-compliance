@@ -15,7 +15,8 @@ from sqlalchemy import (
 )
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 
-from schemas.enums import ActorRole, IncidentSeverity
+from schemas.enums import ActorRole, IncidentSeverity, UserRole
+from src.persistence.tenancy import TenantScoped
 
 
 def _uuid() -> str:
@@ -186,26 +187,56 @@ class ProvenanceRecord(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime, default=lambda: datetime.now(timezone.utc))
 
 
-class AISystem(Base):
+class Tenant(Base):
+    """An isolated customer workspace. Every tenant-owned row FKs back here, and
+    src/persistence/tenancy.py enforces that no query crosses the boundary."""
+
+    __tablename__ = "tenants"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=_uuid)
+    name: Mapped[str] = mapped_column(String(256))
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=lambda: datetime.now(timezone.utc))
+
+
+class User(Base):
+    """A login belonging to exactly one tenant.
+
+    Deliberately *not* TenantScoped: authentication has to find the user by email before
+    any tenant context exists -- that's the lookup that establishes it. Tenant scoping of
+    user administration is enforced explicitly in src/auth/users.py instead, which is why
+    that module is the one place querying this table.
+    """
+
+    __tablename__ = "users"
+    __table_args__ = (UniqueConstraint("email", name="uq_user_email"),)
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=_uuid)
+    tenant_id: Mapped[str] = mapped_column(ForeignKey("tenants.id"), index=True)
+    email: Mapped[str] = mapped_column(String(320))
+    password_hash: Mapped[str] = mapped_column(String(256))
+    role: Mapped[UserRole] = mapped_column(Enum(UserRole))
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=lambda: datetime.now(timezone.utc))
+
+    tenant: Mapped["Tenant"] = relationship()
+
+
+class AISystem(Base, TenantScoped):
     """A named AI system a user tracks assessments against (Phase A registry).
 
     Assessments aren't required to belong to one -- `AssessmentRecord.ai_system_id` is
-    nullable so ungrouped/ad-hoc assessments (and every historical row from before this
-    table existed) stay valid. `tenant_id` mirrors AssessmentRecord's: unused single-
-    tenant column today, present so multi-tenancy doesn't need a later migration.
+    nullable so ungrouped/ad-hoc assessments stay valid.
     """
 
     __tablename__ = "ai_systems"
 
     id: Mapped[str] = mapped_column(String(36), primary_key=True, default=_uuid)
-    tenant_id: Mapped[str | None] = mapped_column(String(128), nullable=True)
     name: Mapped[str] = mapped_column(String(256))
     description: Mapped[str | None] = mapped_column(Text, nullable=True)
     owner_note: Mapped[str | None] = mapped_column(Text, nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=lambda: datetime.now(timezone.utc))
 
 
-class Incident(Base):
+class Incident(Base, TenantScoped):
     """A serious incident reported (or awaiting report) for an AI system, per Article 73.
 
     Unlike AssessmentRecord.ai_system_id, this FK is required -- an incident always
@@ -225,21 +256,18 @@ class Incident(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime, default=lambda: datetime.now(timezone.utc))
 
 
-class AssessmentRecord(Base):
+class AssessmentRecord(Base, TenantScoped):
     """Everything needed to reconstruct a past assessment, per the mandate's
     "Observability and reproducibility" list. Nested objects (facts, classification,
     obligations, evidence, gaps, review flags, LLM call log) are stored as JSON text
     columns rather than a normalized schema -- they're written once and read back whole
     (never queried by sub-field), so normalization would add migration surface for no
-    query benefit. `tenant_id` is nullable and unused today (single-tenant so far, per
-    the Phase 0 architecture note); the column exists so multi-tenancy doesn't require
-    a later migration to retrofit isolation onto historical rows.
+    query benefit.
     """
 
     __tablename__ = "assessment_records"
 
     id: Mapped[str] = mapped_column(String(36), primary_key=True, default=_uuid)
-    tenant_id: Mapped[str | None] = mapped_column(String(128), nullable=True)
     ai_system_id: Mapped[str | None] = mapped_column(ForeignKey("ai_systems.id"), nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=lambda: datetime.now(timezone.utc))
     as_of: Mapped[date] = mapped_column(Date)

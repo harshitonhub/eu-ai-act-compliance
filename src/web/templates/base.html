@@ -277,6 +277,17 @@
 
     body.wide main { max-width: 900px; }
 
+    header nav .whoami { font-size: 0.85rem; color: var(--text-muted); margin-left: 1.25rem; }
+    header nav .logout-form {
+      display: inline; background: none; border: none; padding: 0;
+      box-shadow: none; margin-left: 0.75rem;
+    }
+    header nav .logout-form button {
+      margin: 0; padding: 0.3rem 0.7rem; font-size: 0.8rem;
+      background: transparent; color: var(--text-muted); border: 1px solid var(--border);
+    }
+    header nav .logout-form button:hover { background: var(--gray-bg); color: var(--text); }
+
     @media print {
       header, nav, .no-print { display: none !important; }
       body { background: #fff; }
@@ -293,8 +304,15 @@
     <a href="/">EU AI Act Compliance</a>
     <nav>
       <a href="/ai-risk-check">AI Risk Check</a>
-      {% if not public_page %}<a href="/history">History</a>{% endif %}
-      {% if not public_page %}<a href="/deadlines">Deadlines</a>{% endif %}
+      {% if not public_page %}
+      <a href="/history">History</a>
+      <a href="/deadlines">Deadlines</a>
+      {% set current_user = request.state.current_user %}
+      {% if current_user %}
+      <span class="whoami" title="{{ current_user.role.value }}">{{ current_user.email }}</span>
+      <form method="post" action="/logout" class="logout-form"><button type="submit">Sign out</button></form>
+      {% endif %}
+      {% endif %}
     </nav>
   </header>
   <main>

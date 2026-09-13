@@ -1,3 +1,5 @@
+from sqlalchemy import func, select
+
 from src.persistence.models import AISystem
 from src.systems.registry import get_ai_system, get_or_create_ai_system, list_ai_systems
 
@@ -6,7 +8,7 @@ def test_get_or_create_ai_system_creates_new(session):
     system = get_or_create_ai_system(session, "Resume Screener")
 
     assert system.name == "Resume Screener"
-    assert session.query(AISystem).count() == 1
+    assert session.scalar(select(func.count(AISystem.id))) == 1
 
 
 def test_get_or_create_ai_system_reuses_existing_by_exact_name(session):
@@ -14,7 +16,7 @@ def test_get_or_create_ai_system_reuses_existing_by_exact_name(session):
     second = get_or_create_ai_system(session, "Resume Screener")
 
     assert first.id == second.id
-    assert session.query(AISystem).count() == 1
+    assert session.scalar(select(func.count(AISystem.id))) == 1
 
 
 def test_get_or_create_ai_system_strips_whitespace(session):

@@ -10,7 +10,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from datetime import datetime
 
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
 from src.persistence.models import AISystem, AssessmentRecord
@@ -53,7 +53,12 @@ def list_ai_systems(session: Session) -> list[AISystemSummary]:
             description=s.description,
             owner_note=s.owner_note,
             created_at=s.created_at,
-            assessment_count=session.query(AssessmentRecord).filter_by(ai_system_id=s.id).count(),
+            # count(AssessmentRecord.id), not query(...).count(): the latter buries the
+            # entity in a subquery where the tenant filter can't attach, and would count
+            # every tenant's rows. src/persistence/tenancy.py rejects that shape outright.
+            assessment_count=session.scalar(
+                select(func.count(AssessmentRecord.id)).where(AssessmentRecord.ai_system_id == s.id)
+            ),
         )
         for s in systems
     ]

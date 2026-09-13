@@ -1,5 +1,7 @@
 from datetime import date
 
+from sqlalchemy import func, select
+
 from schemas.enums import IncidentSeverity
 from src.incidents.registry import (
     create_incident,
@@ -24,7 +26,7 @@ def test_create_incident_persists_row(session):
         detected_at=date(2026, 9, 1),
     )
 
-    assert session.query(Incident).count() == 1
+    assert session.scalar(select(func.count(Incident.id))) == 1
     assert incident.ai_system_id == system.id
 
 

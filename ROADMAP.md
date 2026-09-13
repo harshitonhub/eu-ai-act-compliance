@@ -117,7 +117,7 @@ pair with a `User` table, real login, and roles. Wires the already-existing but 
 in this roadmap — everything else is additive; this touches auth on every route.
 
 ## Phase H — Gap ownership + status (S)
-**Depends on:** G (needs real users to assign to). Turns a `Gap` from a report line
+**Depends on:** G (**now delivered** -- real users exist to assign to). Turns a `Gap` from a report line
 into a lightweight task: assigned owner, status (open/in-progress/done). Requires
 persisting gaps as rows, not just computing them on the fly per report.
 
@@ -233,6 +233,7 @@ classification" as a merge-gate check, not a form to fill out after the fact.
 4. **D, E** (natural extensions of A, moderate effort) — **D's dashboard half and E delivered**
 5. **F** (biggest real cost-reduction for actual users, independent)
 6. **G → H** (biggest lift, only worth it once ready for real multi-user/production use)
+   — **G delivered**
 7. **M** (GDPR — highest-leverage framework addition, directly overlaps existing
    high-risk obligations, same ingestion method already proven)
 8. **N → O** (NIST crosswalks — cheap once M exists to crosswalk against, closes the

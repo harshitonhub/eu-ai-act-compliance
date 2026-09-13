@@ -1,6 +1,6 @@
 import pytest
 from fastapi.testclient import TestClient
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, func, select
 from sqlalchemy.orm import Session
 from sqlalchemy.pool import StaticPool
 
@@ -11,6 +11,7 @@ from src.legal.ingest import ingest_seed
 from src.llm.fake_client import FakeCompletionProvider
 from src.llm.interface import LLMClient
 from src.persistence.db import get_session
+from src.persistence.tenancy import cross_tenant_context
 from src.persistence.models import AssessmentRecord, Base
 
 HIGH_RISK_RESPONSES = [
@@ -88,8 +89,10 @@ def test_check_does_not_persist_an_assessment_record(public_client):
 
     client.post("/ai-risk-check", data={"description": "A resume screening tool."})
 
-    with Session(engine) as verify_session:
-        assert verify_session.query(AssessmentRecord).count() == 0
+    # cross_tenant_context because the claim is "no record exists in ANY tenant" -- a
+    # tenant-scoped count could only ever prove it for one of them.
+    with Session(engine) as verify_session, cross_tenant_context(verify_session):
+        assert verify_session.scalar(select(func.count(AssessmentRecord.id))) == 0
 
 
 def test_public_rate_limit_is_stricter_than_authenticated_endpoints(public_client):

@@ -52,6 +52,16 @@ class EvidenceDimension(str, enum.Enum):
     SUFFICIENCY = "sufficiency"
 
 
+class UserRole(str, enum.Enum):
+    """Least-privilege ladder. ADMIN is the only role that can manage users; VIEWER is
+    read-only, so an auditor can be given access without the ability to alter the record
+    they are auditing. See src/api/auth.py for where each is enforced."""
+
+    ADMIN = "admin"
+    MEMBER = "member"
+    VIEWER = "viewer"
+
+
 class IncidentSeverity(str, enum.Enum):
     """The four Article 3(49) 'serious incident' categories plus Article 3(61)
     'widespread infringement' -- together, every category Article 73 sets a distinct

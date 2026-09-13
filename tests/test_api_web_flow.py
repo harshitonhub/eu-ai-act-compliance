@@ -16,9 +16,11 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import Session
 from sqlalchemy.pool import StaticPool
 
+from schemas.enums import UserRole
 from src.api.dependencies import get_llm_client
 from src.api.main import app
-from src.api.rate_limit import rate_limiter
+from src.api.rate_limit import login_rate_limiter, rate_limiter
+from src.auth.users import create_tenant, create_user
 from src.legal.ingest import ingest_seed
 from src.legal.versioning import supersede_requirement
 from src.llm.fake_client import FakeCompletionProvider
@@ -26,6 +28,7 @@ from src.llm.interface import LLMClient
 from src.observability.assessment_log import reconstruct_assessment
 from src.persistence.db import get_session
 from src.persistence.models import Base, Requirement
+from src.persistence.tenancy import bind_tenant
 from schemas.classification import ClassificationResult
 
 HIGH_RISK_CLASSIFICATION_RESPONSES = [
@@ -54,18 +57,27 @@ class _FakeLLMHolder:
         self.responses: list[str] = []
 
 
+TEST_PASSWORD = "correct-horse-battery-staple"
+
+
 @pytest.fixture
 def web_client(monkeypatch):
-    monkeypatch.setenv("APP_USERNAME", "test-user")
-    monkeypatch.setenv("APP_PASSWORD", "test-password")
+    monkeypatch.setenv("SESSION_SECRET", "test-secret-not-used-in-production")
     rate_limiter.reset()  # each test gets a fresh rate-limit window, not the module-shared one
+    login_rate_limiter.reset()
 
     engine = create_engine(
         "sqlite:///:memory:", connect_args={"check_same_thread": False}, poolclass=StaticPool
     )
     Base.metadata.create_all(engine)
     with Session(engine) as seed_session:
-        ingest_seed(seed_session)
+        ingest_seed(seed_session)  # legal corpus: not tenant-owned, so needs no tenant
+        tenant = create_tenant(seed_session, "Test Tenant")
+        tenant_id = tenant.id  # read before the session closes and detaches the instance
+        create_user(
+            seed_session, tenant_id=tenant_id, email="user@test.example",
+            password=TEST_PASSWORD, role=UserRole.MEMBER,
+        )
 
     def override_get_session():
         session = Session(engine)
@@ -83,7 +95,13 @@ def web_client(monkeypatch):
     app.dependency_overrides[get_llm_client] = override_get_llm_client
     try:
         client = TestClient(app)
-        client.auth = ("test-user", "test-password")
+        login = client.post(
+            "/login", data={"email": "user@test.example", "password": TEST_PASSWORD},
+            follow_redirects=False,
+        )
+        assert login.status_code == 303, "fixture could not log in"
+        # Direct-DB assertions need a tenant to bind; the app binds its own per request.
+        client.tenant_id = tenant_id
         yield client, holder, engine
     finally:
         app.dependency_overrides.clear()
@@ -155,6 +173,7 @@ def test_full_web_flow_facts_to_report_with_citations_gaps_and_review_flags(web_
     # Phase 6 DoD: the assessment just produced is fully reconstructable from stored data.
     assessment_id = _extract_assessment_id(report_html)
     with Session(engine) as verify_session:
+        bind_tenant(verify_session, client.tenant_id)
         reconstructed = reconstruct_assessment(verify_session, assessment_id)
     assert reconstructed is not None
     assert reconstructed.classification == ClassificationResult.model_validate_json(classification_json)

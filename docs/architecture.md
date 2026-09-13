@@ -18,8 +18,9 @@ src/
   retrieval/      # hybrid retrieval over legal corpus: exact article/annex lookup + semantic search
   api/            # FastAPI routers, request/response schemas
   web/            # Jinja2 + HTMX templates, minimal forms
-  persistence/    # SQLAlchemy models, migrations (Alembic), tenant-scoped queries
+  persistence/    # SQLAlchemy models, migrations (Alembic), tenancy.py (isolation listeners)
   observability/  # structured logging, assessment-trace reconstruction
+  auth/           # passwords (PBKDF2), signed session cookies, user/tenant provisioning
   systems/        # AI system registry: named records assessments attach to (deterministic, no LLM)
   incidents/      # Article 73 incident logging: deadline tiers, reported state (deterministic, no LLM)
 schemas/          # Pydantic/JSON Schema for every LLM structured output

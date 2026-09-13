@@ -13,6 +13,7 @@ from starlette.datastructures import UploadFile
 from schemas.classification import ClassificationResult
 from schemas.enums import ActorRole, IncidentSeverity
 from schemas.facts import ExtractedFacts
+from src.api.auth import require_writer
 from src.api.dependencies import get_llm_client
 from src.api.rate_limit import rate_limit
 from src.classification.classify import classify_system
@@ -83,7 +84,7 @@ def show_assessment_form(request: Request, session: Session = Depends(get_sessio
     )
 
 
-@router.post("/assess", response_class=HTMLResponse)
+@router.post("/assess", response_class=HTMLResponse, dependencies=[Depends(require_writer)])
 def submit_assessment(
     request: Request,
     system_description: str = Form(...),
@@ -149,7 +150,7 @@ def submit_assessment(
     )
 
 
-@router.post("/report", response_class=HTMLResponse)
+@router.post("/report", response_class=HTMLResponse, dependencies=[Depends(require_writer)])
 async def generate_report(
     request: Request,
     session: Session = Depends(get_session),
@@ -292,7 +293,7 @@ def show_ai_system(
     )
 
 
-@router.post("/systems/{ai_system_id}/incidents", response_class=HTMLResponse)
+@router.post("/systems/{ai_system_id}/incidents", response_class=HTMLResponse, dependencies=[Depends(require_writer)])
 def report_incident(
     ai_system_id: str,
     severity: str = Form(...),
@@ -312,7 +313,7 @@ def report_incident(
     return RedirectResponse(f"/systems/{ai_system_id}", status_code=303)
 
 
-@router.post("/incidents/{incident_id}/mark-reported", response_class=HTMLResponse)
+@router.post("/incidents/{incident_id}/mark-reported", response_class=HTMLResponse, dependencies=[Depends(require_writer)])
 def mark_incident_reported(
     incident_id: str, request: Request, session: Session = Depends(get_session)
 ) -> HTMLResponse:

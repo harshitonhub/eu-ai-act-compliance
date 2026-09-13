@@ -24,6 +24,14 @@ MAX_REQUESTS_PER_WINDOW = 10
 PUBLIC_WINDOW_SECONDS = 60
 PUBLIC_MAX_REQUESTS_PER_WINDOW = 3
 
+# Login gets its own budget rather than sharing the public one. The public limit (3/60s)
+# is sized for an endpoint that costs money per call; on a login form it would lock a
+# legitimate user out after two typos. Sized instead against credential stuffing, where
+# the attacker needs thousands of attempts and 10 per 5 minutes makes that useless, while
+# still absorbing a real person getting their password wrong a few times.
+LOGIN_WINDOW_SECONDS = 300
+LOGIN_MAX_REQUESTS_PER_WINDOW = 10
+
 
 class RateLimiter:
     def __init__(self, *, window_seconds: float, max_requests: int):
@@ -54,6 +62,9 @@ rate_limiter = RateLimiter(window_seconds=WINDOW_SECONDS, max_requests=MAX_REQUE
 public_rate_limiter = RateLimiter(
     window_seconds=PUBLIC_WINDOW_SECONDS, max_requests=PUBLIC_MAX_REQUESTS_PER_WINDOW
 )
+login_rate_limiter = RateLimiter(
+    window_seconds=LOGIN_WINDOW_SECONDS, max_requests=LOGIN_MAX_REQUESTS_PER_WINDOW
+)
 
 
 def rate_limit(request: Request) -> None:
@@ -64,3 +75,8 @@ def rate_limit(request: Request) -> None:
 def public_rate_limit(request: Request) -> None:
     client_key = request.client.host if request.client else "unknown"
     public_rate_limiter.check(client_key)
+
+
+def login_rate_limit(request: Request) -> None:
+    client_key = request.client.host if request.client else "unknown"
+    login_rate_limiter.check(client_key)
