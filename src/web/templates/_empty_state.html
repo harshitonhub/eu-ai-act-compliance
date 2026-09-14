@@ -1,0 +1,13 @@
+{% macro empty_state(title, body, cta_href=None, cta_label=None) %}
+<div class="empty-state">
+  <span class="empty-icon">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <path d="M12 3l7 3v5c0 4.5-3 8.5-7 10-4-1.5-7-5.5-7-10V6l7-3z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/>
+      <path d="M9 12.3l2 2 4-4.4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+  </span>
+  <h4>{{ title }}</h4>
+  <p>{{ body }}</p>
+  {% if cta_href %}<a class="cta" href="{{ cta_href }}">{{ cta_label }} →</a>{% endif %}
+</div>
+{% endmacro %}

@@ -2,53 +2,6 @@
 {% block title %}AI Impact Assessment — {{ ai_system_name or "Untitled System" }}{% endblock %}
 {% block body_class %}wide{% endblock %}
 
-{% block extra_style %}
-.doc-toolbar {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 1.5rem;
-}
-.doc-title {
-  text-align: center;
-  padding: 1.5rem 0 2rem;
-  border-bottom: 2px solid var(--text);
-  margin-bottom: 2rem;
-}
-.doc-title .doc-eyebrow {
-  font-size: 0.8rem;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: var(--text-muted);
-}
-.doc-title h1 { margin: 0.4rem 0; font-size: 1.9rem; }
-.doc-meta {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 0.4rem 2rem;
-  font-size: 0.9rem;
-  color: var(--text-muted);
-  max-width: 480px;
-  margin: 1rem auto 0;
-  text-align: left;
-}
-.doc-meta strong { color: var(--text); }
-.doc-section { margin-top: 2.5rem; break-inside: avoid; }
-.doc-section h2 {
-  border-bottom: 1px solid var(--border);
-  padding-bottom: 0.4rem;
-}
-.doc-footer {
-  margin-top: 3rem;
-  padding-top: 1rem;
-  border-top: 1px solid var(--border);
-  font-size: 0.8rem;
-  color: var(--text-muted);
-}
-dl.fact-list { display: grid; grid-template-columns: max-content 1fr; gap: 0.5rem 1rem; }
-dl.fact-list dt { font-weight: 600; color: var(--text-muted); }
-dl.fact-list dd { margin: 0; }
-{% endblock %}
 
 {% block content %}
 <div class="doc-toolbar no-print">
@@ -56,6 +9,7 @@ dl.fact-list dd { margin: 0; }
   <button type="button" onclick="window.print()">Print / Save as PDF</button>
 </div>
 
+<div class="doc-body">
 <div class="doc-title">
   <div class="doc-eyebrow">AI Impact Assessment</div>
   <h1>{{ ai_system_name or "Untitled AI System" }}</h1>
@@ -68,7 +22,7 @@ dl.fact-list dd { margin: 0; }
 </div>
 
 <div class="doc-section">
-  <h2>1. System Description</h2>
+  <h2>System Description</h2>
   <dl class="fact-list">
     <dt>Description</dt><dd>{{ report.facts.system_description }}</dd>
     <dt>Intended purpose</dt><dd>{{ report.facts.intended_purpose }}</dd>
@@ -85,7 +39,7 @@ dl.fact-list dd { margin: 0; }
 </div>
 
 <div class="doc-section">
-  <h2>2. Classification Results</h2>
+  <h2>Classification Results</h2>
   <table>
     <tr><th>Category</th><th>State</th><th>Citations</th><th>Rationale</th></tr>
     {% for a in report.classification.assessments %}
@@ -107,7 +61,7 @@ dl.fact-list dd { margin: 0; }
 </div>
 
 <div class="doc-section">
-  <h2>3. Applicable Obligations ({{ report.obligations|length }})</h2>
+  <h2>Applicable Obligations ({{ report.obligations|length }})</h2>
   {% if report.obligations %}
   {% for o in report.obligations %}
   <div class="obligation-block">
@@ -127,7 +81,7 @@ dl.fact-list dd { margin: 0; }
 </div>
 
 <div class="doc-section">
-  <h2>4. Evidence &amp; Compliance Status</h2>
+  <h2>Evidence &amp; Compliance Status</h2>
   {% if report.evidence_assessments %}
   <table>
     <tr><th>Obligation</th><th>Status</th><th>Rationale</th></tr>
@@ -145,7 +99,7 @@ dl.fact-list dd { margin: 0; }
 </div>
 
 <div class="doc-section">
-  <h2>5. Gaps Identified ({{ report.gaps|length }})</h2>
+  <h2>Gaps Identified ({{ report.gaps|length }})</h2>
   {% if report.gaps %}
   <ul>
     {% for g in report.gaps %}
@@ -158,7 +112,7 @@ dl.fact-list dd { margin: 0; }
 </div>
 
 <div class="doc-section">
-  <h2>6. Recommended Actions</h2>
+  <h2>Recommended Actions</h2>
   {% if report.recommended_actions %}
   <ul>{% for action in report.recommended_actions %}<li>{{ action }}</li>{% endfor %}</ul>
   {% else %}
@@ -167,7 +121,7 @@ dl.fact-list dd { margin: 0; }
 </div>
 
 <div class="doc-section">
-  <h2>7. Human Review</h2>
+  <h2>Human Review</h2>
   {% if report.requires_human_review %}
   {% for flag in report.review_flags %}
   <div class="flag"><strong>{{ flag.trigger.value }}</strong>: {{ flag.detail }}</div>
@@ -183,5 +137,6 @@ dl.fact-list dd { margin: 0; }
   legal text it was drawn from — see <code>docs/legal-methodology.md</code>. This document
   restates already-established results; it introduces no new legal conclusions and is not a
   substitute for legal advice.</p>
+</div>
 </div>
 {% endblock %}

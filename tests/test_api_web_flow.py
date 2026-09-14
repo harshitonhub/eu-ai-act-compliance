@@ -114,7 +114,7 @@ def _extract_hidden_value(name: str, html_text: str) -> str:
 
 
 def _extract_assessment_id(html_text: str) -> str:
-    match = re.search(r"Assessment ID:</strong>\s*<code>(.*?)</code>", html_text, re.DOTALL)
+    match = re.search(r"Assessment ID.*?<code>(.*?)</code>", html_text, re.DOTALL)
     assert match, "assessment ID not found in report HTML"
     return html.unescape(match.group(1))
 
@@ -349,7 +349,7 @@ def test_rate_limit_blocks_excessive_requests_to_assess(web_client, monkeypatch)
 def test_history_lists_past_assessments_and_links_to_report(web_client):
     client, holder, _engine = web_client
 
-    assert "No assessments yet" in client.get("/history").text
+    assert "No AI systems assessed yet" in client.get("/history").text
 
     holder.responses = list(HIGH_RISK_CLASSIFICATION_RESPONSES)
     assess_response = client.post(
@@ -623,7 +623,7 @@ def test_impact_assessment_shows_untitled_when_no_ai_system_named(web_client):
 def test_deadlines_page_shows_reassessment_due_date_for_named_system(web_client):
     client, holder, _engine = web_client
 
-    assert "No assessed AI systems yet" in client.get("/deadlines").text
+    assert "Nothing to track yet" in client.get("/deadlines").text
 
     holder.responses = list(HIGH_RISK_CLASSIFICATION_RESPONSES)
     assess_response = client.post(

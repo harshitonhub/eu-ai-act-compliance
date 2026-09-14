@@ -1,22 +1,35 @@
 {% extends "base.html" %}
 {% block title %}Compliance Report — EU AI Act Compliance{% endblock %}
+
+
 {% block content %}
 <span class="step">Step 3 of 3 — Compliance report</span>
 <h2>Compliance report</h2>
-<p><strong>Assessment ID:</strong> <code>{{ assessment_id }}</code></p>
-<p><strong>System:</strong> {{ report.facts.system_description }}</p>
-<p><strong>Intended purpose:</strong> {{ report.facts.intended_purpose }}</p>
-<p><strong>Assessed as of:</strong> {{ report.as_of }}</p>
-<p><a href="/assessments/{{ assessment_id }}/impact-assessment">View as formatted Impact Assessment document</a>
-(print or save as PDF from there)</p>
+
+<div class="report-meta">
+  <dl>
+    <dt>Assessment ID</dt><dd><code>{{ assessment_id }}</code></dd>
+    <dt>System</dt><dd>{{ report.facts.system_description }}</dd>
+    <dt>Intended purpose</dt><dd>{{ report.facts.intended_purpose }}</dd>
+    <dt>Assessed as of</dt><dd>{{ report.as_of }}</dd>
+  </dl>
+</div>
+
+<div class="doc-callout">
+  <p>Need a formal document for a stakeholder or file?</p>
+  <a href="/assessments/{{ assessment_id }}/impact-assessment">View as Impact Assessment →</a>
+</div>
 
 {% if file_errors %}
+<section class="report-section">
 <h3>File upload errors</h3>
 {% for err in file_errors %}
 <div class="flag">{{ err }} — treated as no evidence supplied for this obligation.</div>
 {% endfor %}
+</section>
 {% endif %}
 
+<section class="report-section">
 <h3>Classification</h3>
 <table>
   <tr><th>Category</th><th>State</th><th>Citations</th></tr>
@@ -39,7 +52,9 @@
   </tr>
   {% endfor %}
 </table>
+</section>
 
+<section class="report-section">
 <h3>Obligations and evidence status ({{ report.obligations|length }})</h3>
 {% if report.obligations %}
 <table>
@@ -63,7 +78,9 @@
 {% else %}
 <p>No obligations apply.</p>
 {% endif %}
+</section>
 
+<section class="report-section">
 <h3>Gaps ({{ report.gaps|length }})</h3>
 {% if report.gaps %}
 <ul>
@@ -74,14 +91,18 @@
 {% else %}
 <p>No gaps identified.</p>
 {% endif %}
+</section>
 
+<section class="report-section">
 <h3>Recommended actions</h3>
 {% if report.recommended_actions %}
 <ul>{% for action in report.recommended_actions %}<li>{{ action }}</li>{% endfor %}</ul>
 {% else %}
 <p>None.</p>
 {% endif %}
+</section>
 
+<section class="report-section">
 <h3>Human review</h3>
 {% if report.requires_human_review %}
   {% for flag in report.review_flags %}
@@ -90,6 +111,7 @@
 {% else %}
 <p>No review flags raised.</p>
 {% endif %}
+</section>
 
-<p><a href="/">Start a new assessment</a> · <a href="/history">View all assessments</a></p>
+<p style="margin-top: 2rem;"><a href="/">Start a new assessment</a> · <a href="/history">View all assessments</a></p>
 {% endblock %}

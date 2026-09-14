@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% import "_empty_state.html" as e %}
 {% block title %}Deadlines — EU AI Act Compliance{% endblock %}
 {% block content %}
 <h2>Deadlines</h2>
@@ -8,7 +9,11 @@ product default), and when a requirement that was not yet applicable at assessme
 will come into force.</p>
 
 {% if not deadlines %}
-<p class="hint">No assessed AI systems yet. <a href="/">Start one</a>.</p>
+{{ e.empty_state(
+  "Nothing to track yet",
+  "Deadlines appear here automatically once an AI system has at least one assessment.",
+  cta_href="/", cta_label="Start an assessment"
+) }}
 {% else %}
 <table>
   <tr><th>AI system</th><th>Last assessed</th><th>Re-assessment due</th><th>Upcoming applicability</th></tr>

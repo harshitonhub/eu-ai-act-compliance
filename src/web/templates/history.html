@@ -1,11 +1,16 @@
 {% extends "base.html" %}
 {% import "_assessment_table.html" as t %}
+{% import "_empty_state.html" as e %}
 {% block title %}My AI Systems — EU AI Act Compliance{% endblock %}
 {% block content %}
 <h2>My AI systems</h2>
 
 {% if not systems and not ungrouped %}
-<p class="hint">No assessments yet. <a href="/">Start one</a>.</p>
+{{ e.empty_state(
+  "No AI systems assessed yet",
+  "Describe a system in one sentence and this page fills in with its classification history, obligations, and deadlines.",
+  cta_href="/", cta_label="Start your first assessment"
+) }}
 {% endif %}
 
 {% for system in systems %}

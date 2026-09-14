@@ -4,6 +4,10 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>{% block title %}EU AI Act Compliance{% endblock %}</title>
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none'%3E%3Cpath d='M12 3l7 3v5c0 4.5-3 8.5-7 10-4-1.5-7-5.5-7-10V6l7-3z' fill='%230f766e'/%3E%3Cpath d='M9 12.3l2 2 4-4.4' stroke='white' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600;8..60,700&display=swap" rel="stylesheet">
   <script src="https://unpkg.com/htmx.org@2.0.3"></script>
   <style>
     :root {
@@ -12,15 +16,18 @@
       --border: #e2e5ea;
       --text: #1a1d23;
       --text-muted: #667085;
-      --accent: #4338ca;
-      --accent-hover: #3730a3;
-      --accent-soft: #eef0fd;
+      --accent: #0f766e;
+      --accent-hover: #0b5c55;
+      --accent-soft: #e5f5f3;
       --green-bg: #e8f7ee; --green-text: #067647; --green-border: #abefc6;
       --amber-bg: #fff6e5; --amber-text: #b25e09; --amber-border: #fedf89;
       --red-bg: #fef1f1; --red-text: #b42318; --red-border: #fecdca;
       --gray-bg: #f2f4f7; --gray-text: #475467; --gray-border: #e4e7ec;
-      --radius: 10px;
+      --radius: 12px;
       --shadow: 0 1px 2px rgba(16, 24, 40, 0.05);
+      --shadow-md: 0 2px 4px rgba(16, 24, 40, 0.06), 0 10px 20px -8px rgba(16, 24, 40, 0.12);
+      --font-ui: "Inter", -apple-system, "Segoe UI", system-ui, sans-serif;
+      --font-serif: "Source Serif 4", Georgia, "Times New Roman", serif;
     }
     @media (prefers-color-scheme: dark) {
       :root {
@@ -29,19 +36,20 @@
         --border: #2a2e37;
         --text: #e7e9ee;
         --text-muted: #9aa1b0;
-        --accent: #818cf8;
-        --accent-hover: #a5b0fb;
-        --accent-soft: #1e2036;
+        --accent: #2dd4bf;
+        --accent-hover: #5eead4;
+        --accent-soft: #103330;
         --green-bg: #0e2a1c; --green-text: #4ade80; --green-border: #14532d;
         --amber-bg: #2c210a; --amber-text: #fbbf24; --amber-border: #4d3a0f;
         --red-bg: #2c1414; --red-text: #f87171; --red-border: #4d1f1f;
         --gray-bg: #1e2129; --gray-text: #9aa1b0; --gray-border: #2a2e37;
+        --shadow-md: 0 2px 4px rgba(0, 0, 0, 0.2), 0 10px 24px -8px rgba(0, 0, 0, 0.4);
       }
     }
 
     * { box-sizing: border-box; }
     body {
-      font-family: -apple-system, "Segoe UI", system-ui, sans-serif;
+      font-family: var(--font-ui);
       background: var(--bg);
       color: var(--text);
       margin: 0;
@@ -55,15 +63,19 @@
       padding: 1rem 1.5rem;
     }
     header a {
+      display: inline-flex;
+      align-items: center;
       font-weight: 700;
       font-size: 1.1rem;
       text-decoration: none;
       color: var(--text);
     }
-    header a::before {
-      content: "⚖";
+    header .mark {
+      display: inline-flex;
+      color: var(--accent);
       margin-right: 0.5rem;
     }
+    header .mark svg { display: block; }
 
     main {
       max-width: 800px;
@@ -95,7 +107,7 @@
       border: 1px solid var(--border);
       border-radius: var(--radius);
       padding: 1.5rem;
-      box-shadow: var(--shadow);
+      box-shadow: var(--shadow-md);
     }
     label {
       display: block;
@@ -146,7 +158,7 @@
       border: 1px solid var(--border);
       border-radius: var(--radius);
       overflow: hidden;
-      box-shadow: var(--shadow);
+      box-shadow: var(--shadow-md);
     }
     th, td {
       padding: 0.65rem 0.85rem;
@@ -206,7 +218,7 @@
       padding: 1.1rem 1.25rem;
       margin-top: 1rem;
       border-radius: var(--radius);
-      box-shadow: var(--shadow);
+      box-shadow: var(--shadow-md);
     }
     .obligation-block > strong { font-size: 0.95rem; }
     .obligation-block > p { margin: 0.4rem 0 0.8rem; font-size: 0.9rem; }
@@ -288,6 +300,41 @@
     }
     header nav .logout-form button:hover { background: var(--gray-bg); color: var(--text); }
 
+    .empty-state {
+      text-align: center;
+      padding: 3rem 1.5rem;
+      background: var(--surface);
+      border: 1px dashed var(--border);
+      border-radius: var(--radius);
+      margin-top: 1rem;
+    }
+    .empty-state .empty-icon {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 3rem;
+      height: 3rem;
+      border-radius: 999px;
+      background: var(--accent-soft);
+      color: var(--accent);
+      margin-bottom: 1rem;
+    }
+    .empty-state h4 {
+      margin: 0 0 0.35rem;
+      font-size: 1.05rem;
+      color: var(--text);
+    }
+    .empty-state p {
+      margin: 0;
+      color: var(--text-muted);
+      font-size: 0.9rem;
+    }
+    .empty-state a.cta {
+      display: inline-block;
+      margin-top: 1rem;
+      font-weight: 600;
+    }
+
     @media print {
       header, nav, .no-print { display: none !important; }
       body { background: #fff; }
@@ -296,12 +343,228 @@
       .flag, .obligation-block, table { box-shadow: none; break-inside: avoid; }
     }
 
+    /* --- Page-specific styles, consolidated here rather than left in each page's own
+       extra_style block. hx-boost swaps <body> only on client-side navigation -- it
+       never updates <head> -- so any CSS left in a per-page <style> block silently
+       stops applying the moment a real user reaches that page via a clicked link
+       instead of a typed URL or hard reload. Putting it all in the one stylesheet that
+       loads once per session sidesteps the problem instead of fighting it. */
+
+    /* login.html */
+    .login-card { max-width: 380px; margin: 3rem auto 0; }
+    .login-card h2 { text-align: center; margin-bottom: 1.5rem; }
+    .login-card button { width: 100%; }
+
+    /* ai_risk_check.html */
+    .hero { text-align: center; padding: 2.5rem 1rem 1rem; }
+    .hero .eyebrow {
+      display: inline-block;
+      background: var(--accent-soft);
+      color: var(--accent);
+      font-size: 0.75rem;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      padding: 0.3rem 0.8rem;
+      border-radius: 999px;
+      margin-bottom: 1.25rem;
+    }
+    .hero h1 {
+      font-size: 2.3rem;
+      line-height: 1.15;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      margin: 0 0 0.9rem;
+    }
+    .hero h1 .accent { color: var(--accent); }
+    .hero p.lede {
+      font-size: 1.1rem;
+      color: var(--text-muted);
+      max-width: 560px;
+      margin: 0 auto 0.5rem;
+    }
+    .fine-strip {
+      display: flex;
+      justify-content: center;
+      gap: 2rem;
+      flex-wrap: wrap;
+      margin: 1.75rem 0 2.5rem;
+      padding: 1rem 0;
+      border-top: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
+    }
+    .fine-strip .stat { text-align: center; }
+    .fine-strip .stat strong {
+      display: block;
+      font-size: 1.5rem;
+      font-weight: 800;
+      color: var(--red-text);
+    }
+    .fine-strip .stat span {
+      font-size: 0.78rem;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+    }
+    .check-card { max-width: 640px; margin: 0 auto; }
+    .check-card textarea { min-height: 7rem; font-size: 1rem; }
+    .check-card button { width: 100%; font-size: 1.05rem; padding: 0.85rem; }
+    .how-it-works {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1.25rem;
+      max-width: 700px;
+      margin: 3rem auto 0;
+    }
+    .how-it-works div { text-align: center; }
+    .how-it-works .num {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 2rem;
+      height: 2rem;
+      border-radius: 999px;
+      background: var(--accent-soft);
+      color: var(--accent);
+      font-weight: 700;
+      margin-bottom: 0.6rem;
+    }
+    .how-it-works p { font-size: 0.85rem; margin: 0; }
+    .verdict {
+      max-width: 640px;
+      margin: 2.5rem auto 0;
+      padding: 1.75rem;
+      border-radius: var(--radius);
+      text-align: center;
+      border: 1px solid;
+    }
+    .verdict.verdict-red { background: var(--red-bg); border-color: var(--red-border); }
+    .verdict.verdict-amber { background: var(--amber-bg); border-color: var(--amber-border); }
+    .verdict.verdict-green { background: var(--green-bg); border-color: var(--green-border); }
+    .verdict.verdict-gray { background: var(--gray-bg); border-color: var(--gray-border); }
+    .verdict .verdict-icon { font-size: 2rem; line-height: 1; margin-bottom: 0.5rem; }
+    .verdict h3 { margin: 0 0 0.4rem; font-size: 1.35rem; font-weight: 800; }
+    .verdict.verdict-red h3 { color: var(--red-text); }
+    .verdict.verdict-amber h3 { color: var(--amber-text); }
+    .verdict.verdict-green h3 { color: var(--green-text); }
+    .verdict.verdict-gray h3 { color: var(--gray-text); }
+    .verdict p { color: var(--text); margin: 0; }
+    .detail-cards { max-width: 640px; margin: 1.25rem auto 0; display: grid; gap: 0.75rem; }
+
+    /* report.html */
+    .report-meta {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 1.1rem 1.25rem;
+      margin-bottom: 1.5rem;
+    }
+    .report-meta dl { display: grid; grid-template-columns: max-content 1fr; gap: 0.35rem 1rem; margin: 0; }
+    .report-meta dt { font-weight: 600; color: var(--text-muted); font-size: 0.85rem; }
+    .report-meta dd { margin: 0; font-size: 0.9rem; }
+    .doc-callout {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+      flex-wrap: wrap;
+      background: var(--accent-soft);
+      border: 1px solid var(--accent);
+      border-radius: var(--radius);
+      padding: 0.85rem 1.1rem;
+      margin: 1.25rem 0 2rem;
+    }
+    .doc-callout p { margin: 0; font-size: 0.9rem; }
+    .doc-callout a { font-weight: 700; white-space: nowrap; }
+    section.report-section { margin-top: 2rem; }
+    section.report-section h3 { margin-top: 0; margin-bottom: 0.6rem; }
+
+    /* impact_assessment.html */
+    .doc-body { font-family: var(--font-serif); counter-reset: docsection; }
+    .doc-body h1, .doc-body h2, .doc-body .doc-eyebrow, .doc-body th { font-family: var(--font-ui); }
+    .doc-toolbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; }
+    .doc-title {
+      text-align: center;
+      padding: 2rem 1.5rem 1.75rem;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-top: 4px solid var(--accent);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow-md);
+      margin-bottom: 2.5rem;
+    }
+    .doc-title .doc-eyebrow {
+      font-size: 0.78rem;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--accent);
+    }
+    .doc-title h1 { margin: 0.5rem 0 0; font-size: 2rem; font-weight: 800; letter-spacing: -0.01em; }
+    .doc-meta {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 0.5rem 2rem;
+      font-size: 0.88rem;
+      font-family: var(--font-ui);
+      color: var(--text-muted);
+      max-width: 480px;
+      margin: 1.5rem auto 0;
+      text-align: left;
+      padding-top: 1.25rem;
+      border-top: 1px solid var(--border);
+    }
+    .doc-meta strong { color: var(--text); }
+    .doc-section { margin-top: 2rem; break-inside: avoid; counter-increment: docsection; }
+    .doc-section h2 {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      border-bottom: 2px solid var(--accent-soft);
+      padding-bottom: 0.5rem;
+      font-size: 1.15rem;
+    }
+    .doc-section h2::before {
+      content: counter(docsection);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      width: 1.6rem;
+      height: 1.6rem;
+      border-radius: 999px;
+      background: var(--accent);
+      color: #fff;
+      font-size: 0.82rem;
+      font-weight: 700;
+    }
+    .doc-footer {
+      margin-top: 3rem;
+      padding-top: 1rem;
+      border-top: 1px solid var(--border);
+      font-size: 0.8rem;
+      font-family: var(--font-ui);
+      color: var(--text-muted);
+    }
+    dl.fact-list { display: grid; grid-template-columns: max-content 1fr; gap: 0.6rem 1rem; }
+    dl.fact-list dt { font-weight: 600; color: var(--text-muted); font-family: var(--font-ui); font-size: 0.85rem; }
+    dl.fact-list dd { margin: 0; }
+
     {% block extra_style %}{% endblock %}
   </style>
 </head>
 <body hx-boost="true" class="{% block body_class %}{% endblock %}">
   <header class="no-print">
-    <a href="/">EU AI Act Compliance</a>
+    <a href="/">
+      <span class="mark">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <path d="M12 3l7 3v5c0 4.5-3 8.5-7 10-4-1.5-7-5.5-7-10V6l7-3z" fill="currentColor" fill-opacity="0.12" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/>
+          <path d="M9 12.3l2 2 4-4.4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </span>
+      EU AI Act Compliance
+    </a>
     <nav>
       <a href="/ai-risk-check">AI Risk Check</a>
       {% if not public_page %}

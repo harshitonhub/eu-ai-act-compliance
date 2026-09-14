@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% import "_assessment_table.html" as t %}
+{% import "_empty_state.html" as e %}
 {% block title %}{{ system.name }} — EU AI Act Compliance{% endblock %}
 {% block content %}
 <p class="hint"><a href="/history">← My AI systems</a></p>
@@ -18,7 +19,7 @@
 {% if assessments %}
 {{ t.assessment_table(assessments) }}
 {% else %}
-<p class="hint">No assessments yet for this system.</p>
+{{ e.empty_state("No assessments yet", "Re-run the assessment for this system and it will show up here.") }}
 {% endif %}
 
 <h3>Incidents ({{ incidents|length }})</h3>
@@ -60,7 +61,7 @@ detected — not the report date.</p>
   {% endfor %}
 </table>
 {% else %}
-<p class="hint">No incidents logged for this system.</p>
+{{ e.empty_state("No incidents logged", "If a serious incident occurs, log it below to get the correct Article 73 reporting deadline.") }}
 {% endif %}
 
 <details>

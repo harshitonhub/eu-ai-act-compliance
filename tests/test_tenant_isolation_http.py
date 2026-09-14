@@ -125,7 +125,7 @@ def _create_full_assessment(client: TestClient, holder: _Holder, system_name: st
         },
     )
     assert report.status_code == 200
-    assessment_id = re.search(r"Assessment ID:</strong>\s*<code>(.*?)</code>", report.text).group(1)
+    assessment_id = re.search(r"Assessment ID.*?<code>(.*?)</code>", report.text).group(1)
 
     system_id = re.search(r'/systems/([\w-]+)', client.get("/history").text).group(1)
 
