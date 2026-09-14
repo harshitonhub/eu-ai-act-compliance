@@ -116,7 +116,7 @@ def test_tampered_session_is_rejected(monkeypatch):
     import base64
 
     token = base64.urlsafe_b64decode(issue_session("user-123")).decode()
-    user_id, expiry, tag = token.rsplit("|", 2)
+    _original_user_id, expiry, tag = token.rsplit("|", 2)
     forged = base64.urlsafe_b64encode(f"someone-else|{expiry}|{tag}".encode()).decode()
 
     assert read_session(forged) is None

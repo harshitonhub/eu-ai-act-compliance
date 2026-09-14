@@ -35,7 +35,12 @@ CLASSIFICATION = ClassificationResult(
 )
 
 OBLIGATIONS = [
-    Obligation(requirement_key="EU-AI-ACT-ART9", citation="Article 9", summary="Risk management.", triggered_by=ClassificationCategory.HIGH_RISK)
+    Obligation(
+        requirement_key="EU-AI-ACT-ART9",
+        citation="Article 9",
+        summary="Risk management.",
+        triggered_by=ClassificationCategory.HIGH_RISK,
+    )
 ]
 
 EVIDENCE = [
@@ -47,7 +52,15 @@ EVIDENCE = [
     )
 ]
 
-GAPS = [Gap(requirement_key="EU-AI-ACT-ART9", citation="Article 9", obligation_summary="Risk management.", evidence_status=EvidenceStatus.NON_COMPLIANT, rationale="No policy provided.")]
+GAPS = [
+    Gap(
+        requirement_key="EU-AI-ACT-ART9",
+        citation="Article 9",
+        obligation_summary="Risk management.",
+        evidence_status=EvidenceStatus.NON_COMPLIANT,
+        rationale="No policy provided.",
+    )
+]
 
 REVIEW_FLAGS = [ReviewFlag(ReviewTrigger.EVIDENCE_GAP, "EU-AI-ACT-ART9: NON_COMPLIANT")]
 
@@ -73,7 +86,11 @@ def test_report_introduces_no_requirement_keys_beyond_its_inputs():
         | {e.requirement_key for e in EVIDENCE}
         | {g.requirement_key for g in GAPS}
     )
-    report_keys = {o.requirement_key for o in report.obligations} | {e.requirement_key for e in report.evidence_assessments} | {g.requirement_key for g in report.gaps}
+    report_keys = (
+        {o.requirement_key for o in report.obligations}
+        | {e.requirement_key for e in report.evidence_assessments}
+        | {g.requirement_key for g in report.gaps}
+    )
 
     assert report_keys.issubset(input_keys)
 
@@ -82,7 +99,7 @@ def test_recommended_actions_are_derived_only_from_gaps_not_invented():
     report = build_report(FACTS, date(2026, 9, 9), CLASSIFICATION, OBLIGATIONS, EVIDENCE, GAPS, REVIEW_FLAGS)
 
     assert len(report.recommended_actions) == len(GAPS)
-    for action, gap in zip(report.recommended_actions, GAPS):
+    for action, gap in zip(report.recommended_actions, GAPS, strict=True):
         assert gap.requirement_key in action
         assert gap.obligation_summary in action
 

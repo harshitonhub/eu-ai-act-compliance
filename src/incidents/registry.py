@@ -9,7 +9,7 @@ text ingested into legal/sources/eu_ai_act_2024_1689/article_73.txt.
 from __future__ import annotations
 
 from dataclasses import dataclass
-from datetime import date, datetime, timedelta, timezone
+from datetime import date, datetime, timedelta, UTC
 
 from sqlalchemy import select
 from sqlalchemy.orm import Session
@@ -97,7 +97,7 @@ def mark_reported(session: Session, incident_id: str) -> Incident | None:
     incident = session.get(Incident, incident_id)
     if incident is None:
         return None
-    incident.reported_at = datetime.now(timezone.utc)
+    incident.reported_at = datetime.now(UTC)
     session.commit()
     return incident
 

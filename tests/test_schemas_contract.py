@@ -93,10 +93,11 @@ def test_classification_result_valid_with_all_five_categories():
 
 
 def test_classification_result_rejects_duplicate_category():
-    assessments = _all_categories_assessment()[:-1] + [
+    assessments = [
+        *_all_categories_assessment()[:-1],
         CategoryClassification(
             category=ClassificationCategory.SCOPE, state=ClassificationState.NO, rationale="dup", confidence=1.0
-        )
+        ),
     ]
     with pytest.raises(ValidationError):
         ClassificationResult(assessments=assessments)
@@ -147,6 +148,9 @@ def test_evidence_assessment_rejects_duplicate_dimension():
         EvidenceAssessment(
             requirement_key="EU-AI-ACT-ANNEXIII-4",
             status=EvidenceStatus.COMPLIANT,
-            dimensions=_all_dimensions() + [DimensionAssessment(dimension=EvidenceDimension.RELEVANCE, met=True, note="dup")],
+            dimensions=[
+                *_all_dimensions(),
+                DimensionAssessment(dimension=EvidenceDimension.RELEVANCE, met=True, note="dup"),
+            ],
             rationale="Relevance assessed twice.",
         )

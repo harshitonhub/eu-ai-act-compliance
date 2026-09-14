@@ -1,9 +1,9 @@
-from datetime import date, datetime, timedelta, timezone
+from datetime import date, datetime, timedelta, UTC
 
 from src.observability.retention import delete_assessment, purge_expired_assessments
 from src.persistence.models import AssessmentRecord
 
-FIXED_NOW = datetime(2026, 9, 11, tzinfo=timezone.utc)
+FIXED_NOW = datetime(2026, 9, 11, tzinfo=UTC)
 
 
 def _make_record(session, *, created_at: datetime) -> str:

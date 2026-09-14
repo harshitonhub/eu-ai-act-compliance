@@ -24,6 +24,16 @@ jobs:
       - name: Install dependencies (pinned via uv.lock)
         run: uv sync --frozen --extra dev
 
+      # Blocking, not advisory: ruleset is deliberately narrow (see [tool.ruff.lint] in
+      # pyproject.toml) -- real errors, actual bug patterns, safe modernizations. It
+      # excludes docstring/formatting rules that would fight this codebase's style, and
+      # explicitly configures FastAPI's Depends() as a known-safe default-argument call
+      # rather than flagging idiomatic dependency injection as a bug. A ruleset chosen
+      # to have zero false positives earns the right to block the build; the codebase
+      # was brought to a clean baseline against it before this step was added.
+      - name: Lint (ruff)
+        run: uv run ruff check .
+
       - name: Migration round-trip (up/down/up)
         run: |
           uv run alembic upgrade head

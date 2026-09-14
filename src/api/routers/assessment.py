@@ -108,7 +108,7 @@ def submit_assessment(
 
     try:
         classification = classify_system(instrumented_client, session, facts, as_of=as_of_date)
-    except Exception as exc:  # noqa: BLE001 -- surfaced to the user, not a bare pass
+    except Exception as exc:  # deliberately broad: surfaced to the user, not a bare pass
         # No classification exists yet, so there is nothing meaningful to persist as an
         # AssessmentRecord -- see src/observability/assessment_log.py's module docstring.
         return templates.TemplateResponse(
@@ -196,7 +196,7 @@ async def generate_report(
         evidence_assessments = assess_all_obligations(instrumented_client, obligations, evidence_by_key)
         gaps = compute_gaps(obligations, evidence_assessments)
         review_flags = determine_review_flags(classification, evidence_assessments)
-    except Exception as exc:  # noqa: BLE001 -- recorded, then re-raised as a 500
+    except Exception as exc:  # deliberately broad: recorded below, then re-raised as a 500
         error = f"Something went wrong while assessing evidence. Technical detail: {exc}"
         evidence_assessments, gaps, review_flags = [], [], []
         record_assessment(

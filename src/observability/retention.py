@@ -12,7 +12,7 @@ docs/architecture.md says to avoid.
 
 from __future__ import annotations
 
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, timedelta, UTC
 
 from sqlalchemy import select
 from sqlalchemy.orm import Session
@@ -34,7 +34,7 @@ def purge_expired_assessments(
     of only two sanctioned uses of that escape hatch, and it is unreachable from an HTTP
     request -- no route calls it.
     """
-    cutoff = (as_of or datetime.now(timezone.utc)) - timedelta(days=retention_days)
+    cutoff = (as_of or datetime.now(UTC)) - timedelta(days=retention_days)
     with cross_tenant_context(session):
         expired = list(
             session.scalars(select(AssessmentRecord).where(AssessmentRecord.created_at < cutoff)).all()

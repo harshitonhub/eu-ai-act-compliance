@@ -28,7 +28,7 @@ class CategoryClassification(BaseModel):
     confidence: float = Field(ge=0.0, le=1.0)
 
     @model_validator(mode="after")
-    def require_citation_for_affirmative_states(self) -> "CategoryClassification":
+    def require_citation_for_affirmative_states(self) -> CategoryClassification:
         if self.state in CITED_STATES and not self.cited_requirements:
             raise ValueError(
                 f"state={self.state.value} requires at least one cited_requirement "
@@ -41,7 +41,7 @@ class ClassificationResult(BaseModel):
     assessments: list[CategoryClassification]
 
     @model_validator(mode="after")
-    def require_every_category_exactly_once(self) -> "ClassificationResult":
+    def require_every_category_exactly_once(self) -> ClassificationResult:
         categories = [a.category for a in self.assessments]
         if set(categories) != set(ClassificationCategory) or len(categories) != len(ClassificationCategory):
             raise ValueError(

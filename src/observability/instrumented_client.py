@@ -12,7 +12,7 @@ from __future__ import annotations
 
 import time
 from dataclasses import dataclass
-from datetime import datetime, timezone
+from datetime import datetime, UTC
 from typing import TypeVar
 
 from pydantic import BaseModel
@@ -50,7 +50,7 @@ class InstrumentedLLMClient:
         response_model: type[T],
         prompt_version: str,
     ) -> tuple[T, LLMCallMetadata]:
-        timestamp = datetime.now(timezone.utc)
+        timestamp = datetime.now(UTC)
         start = time.monotonic()
         try:
             result, metadata = self._inner.generate_structured(

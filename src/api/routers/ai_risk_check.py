@@ -57,7 +57,7 @@ def run_ai_risk_check(
 
     try:
         classification = classify_system(llm_client, session, facts, as_of=date.today())
-    except Exception as exc:  # noqa: BLE001 -- surfaced to the user, no record to persist
+    except Exception as exc:  # deliberately broad: surfaced to the user, no record to persist
         return templates.TemplateResponse(
             request,
             "ai_risk_check.html",

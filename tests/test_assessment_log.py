@@ -2,7 +2,7 @@
 data alone.
 """
 
-from datetime import date, datetime, timezone
+from datetime import date, datetime, UTC
 
 from src.observability.assessment_log import list_recent_assessments, record_assessment, reconstruct_assessment
 from src.observability.instrumented_client import LLMCallRecord
@@ -34,7 +34,12 @@ CLASSIFICATION = ClassificationResult(
 )
 
 OBLIGATIONS = [
-    Obligation(requirement_key="EU-AI-ACT-ART9", citation="Article 9", summary="Risk management.", triggered_by=ClassificationCategory.HIGH_RISK)
+    Obligation(
+        requirement_key="EU-AI-ACT-ART9",
+        citation="Article 9",
+        summary="Risk management.",
+        triggered_by=ClassificationCategory.HIGH_RISK,
+    )
 ]
 
 EVIDENCE = [
@@ -48,12 +53,18 @@ EVIDENCE = [
 ]
 
 GAPS = [
-    Gap(requirement_key="EU-AI-ACT-ART9", citation="Article 9", obligation_summary="Risk management.", evidence_status=EvidenceStatus.NON_COMPLIANT, rationale="No policy provided.")
+    Gap(
+        requirement_key="EU-AI-ACT-ART9",
+        citation="Article 9",
+        obligation_summary="Risk management.",
+        evidence_status=EvidenceStatus.NON_COMPLIANT,
+        rationale="No policy provided.",
+    )
 ]
 
 LLM_CALLS = [
     LLMCallRecord(
-        timestamp=datetime(2026, 9, 9, 12, 0, 0, tzinfo=timezone.utc),
+        timestamp=datetime(2026, 9, 9, 12, 0, 0, tzinfo=UTC),
         provider="anthropic",
         model="claude-sonnet-4-5",
         prompt_version="classifier-v1",

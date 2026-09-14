@@ -551,6 +551,25 @@
     dl.fact-list dt { font-weight: 600; color: var(--text-muted); font-family: var(--font-ui); font-size: 0.85rem; }
     dl.fact-list dd { margin: 0; }
 
+    /* Both label/value grids above (report-meta's data, doc-meta's document metadata)
+       use a narrow label column plus a wide value column -- fine on desktop, but a UUID
+       or a full sentence has nowhere to go in the remaining space on a phone. Stack to
+       full width below that point. Placed last deliberately: an equal-specificity rule
+       inside @media wins only if it comes AFTER the rule it overrides in source order --
+       matching media query, earlier position, still loses the cascade. */
+    @media (max-width: 540px) {
+      .report-meta dl, .doc-meta {
+        display: block;
+      }
+      .report-meta dt, .doc-meta strong {
+        display: block;
+        margin-top: 0.6rem;
+      }
+      .report-meta dt:first-child { margin-top: 0; }
+      .report-meta dd { margin: 0.1rem 0 0; }
+      .doc-meta span:nth-child(2n) { display: block; margin: 0.1rem 0 0; }
+    }
+
     {% block extra_style %}{% endblock %}
   </style>
 </head>

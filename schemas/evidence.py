@@ -26,7 +26,7 @@ class EvidenceAssessment(BaseModel):
     contradictions: list[str] = Field(default_factory=list)
 
     @model_validator(mode="after")
-    def dimensions_cover_all_seven_exactly_once(self) -> "EvidenceAssessment":
+    def dimensions_cover_all_seven_exactly_once(self) -> EvidenceAssessment:
         seen = [d.dimension for d in self.dimensions]
         if len(seen) != len(set(seen)):
             raise ValueError("each dimension may be assessed at most once")
@@ -38,7 +38,7 @@ class EvidenceAssessment(BaseModel):
         return self
 
     @model_validator(mode="after")
-    def compliant_status_requires_all_dimensions_met(self) -> "EvidenceAssessment":
+    def compliant_status_requires_all_dimensions_met(self) -> EvidenceAssessment:
         if self.status == EvidenceStatus.COMPLIANT and not all(d.met for d in self.dimensions):
             raise ValueError("status=COMPLIANT requires every assessed dimension to be met")
         return self

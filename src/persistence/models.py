@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import enum
 import uuid
-from datetime import date, datetime, timezone
+from datetime import date, datetime, UTC
 
 from sqlalchemy import (
     Date,
@@ -47,9 +47,9 @@ class SourceDocument(Base):
     source_url: Mapped[str] = mapped_column(Text)
     raw_fetch_sha256: Mapped[str] = mapped_column(String(64))
     retrieved_at: Mapped[datetime] = mapped_column(DateTime)
-    created_at: Mapped[datetime] = mapped_column(DateTime, default=lambda: datetime.now(timezone.utc))
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=lambda: datetime.now(UTC))
 
-    provisions: Mapped[list["LegalProvision"]] = relationship(back_populates="source_document")
+    provisions: Mapped[list[LegalProvision]] = relationship(back_populates="source_document")
 
 
 class LegalProvision(Base):
@@ -72,9 +72,9 @@ class LegalProvision(Base):
     superseded_by_id: Mapped[str | None] = mapped_column(
         ForeignKey("legal_provisions.id"), nullable=True
     )
-    created_at: Mapped[datetime] = mapped_column(DateTime, default=lambda: datetime.now(timezone.utc))
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=lambda: datetime.now(UTC))
 
-    source_document: Mapped["SourceDocument"] = relationship(back_populates="provisions")
+    source_document: Mapped[SourceDocument] = relationship(back_populates="provisions")
 
 
 class Requirement(Base):
@@ -94,13 +94,13 @@ class Requirement(Base):
     summary: Mapped[str] = mapped_column(Text)  # engineer-authored restatement; verbatim provision is authoritative
     primary_provision_id: Mapped[str] = mapped_column(ForeignKey("legal_provisions.id"))
     superseded_by_id: Mapped[str | None] = mapped_column(ForeignKey("requirements.id"), nullable=True)
-    created_at: Mapped[datetime] = mapped_column(DateTime, default=lambda: datetime.now(timezone.utc))
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=lambda: datetime.now(UTC))
 
-    primary_provision: Mapped["LegalProvision"] = relationship()
-    applicability_conditions: Mapped[list["ApplicabilityCondition"]] = relationship(
+    primary_provision: Mapped[LegalProvision] = relationship()
+    applicability_conditions: Mapped[list[ApplicabilityCondition]] = relationship(
         back_populates="requirement"
     )
-    exceptions: Mapped[list["LegalException"]] = relationship(back_populates="requirement")
+    exceptions: Mapped[list[LegalException]] = relationship(back_populates="requirement")
 
 
 class ApplicabilityCondition(Base):
@@ -121,7 +121,7 @@ class ApplicabilityCondition(Base):
     temporal_start: Mapped[date] = mapped_column(Date)
     temporal_end: Mapped[date | None] = mapped_column(Date, nullable=True)
 
-    requirement: Mapped["Requirement"] = relationship(back_populates="applicability_conditions")
+    requirement: Mapped[Requirement] = relationship(back_populates="applicability_conditions")
 
 
 class LegalException(Base):
@@ -134,8 +134,8 @@ class LegalException(Base):
     description: Mapped[str] = mapped_column(Text)  # verbatim quote of the exception clause
     source_provision_id: Mapped[str] = mapped_column(ForeignKey("legal_provisions.id"))
 
-    requirement: Mapped["Requirement"] = relationship(back_populates="exceptions")
-    source_provision: Mapped["LegalProvision"] = relationship()
+    requirement: Mapped[Requirement] = relationship(back_populates="exceptions")
+    source_provision: Mapped[LegalProvision] = relationship()
 
 
 class FrameworkCrosswalk(Base):
@@ -156,9 +156,9 @@ class FrameworkCrosswalk(Base):
     citation: Mapped[str] = mapped_column(String(64))  # e.g. "GOVERN 1.4"
     citation_text: Mapped[str] = mapped_column(Text)  # verbatim subcategory text, never LLM-paraphrased
     source_url: Mapped[str] = mapped_column(Text)
-    created_at: Mapped[datetime] = mapped_column(DateTime, default=lambda: datetime.now(timezone.utc))
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=lambda: datetime.now(UTC))
 
-    requirement: Mapped["Requirement"] = relationship()
+    requirement: Mapped[Requirement] = relationship()
 
 
 class RetrievalMethod(str, enum.Enum):
@@ -184,7 +184,7 @@ class ProvenanceRecord(Base):
     retrieved_at: Mapped[datetime] = mapped_column(DateTime)
     retrieval_method: Mapped[RetrievalMethod] = mapped_column(Enum(RetrievalMethod))
     url: Mapped[str] = mapped_column(Text)
-    created_at: Mapped[datetime] = mapped_column(DateTime, default=lambda: datetime.now(timezone.utc))
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=lambda: datetime.now(UTC))
 
 
 class Tenant(Base):
@@ -195,7 +195,7 @@ class Tenant(Base):
 
     id: Mapped[str] = mapped_column(String(36), primary_key=True, default=_uuid)
     name: Mapped[str] = mapped_column(String(256))
-    created_at: Mapped[datetime] = mapped_column(DateTime, default=lambda: datetime.now(timezone.utc))
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=lambda: datetime.now(UTC))
 
 
 class User(Base):
@@ -215,9 +215,9 @@ class User(Base):
     email: Mapped[str] = mapped_column(String(320))
     password_hash: Mapped[str] = mapped_column(String(256))
     role: Mapped[UserRole] = mapped_column(Enum(UserRole))
-    created_at: Mapped[datetime] = mapped_column(DateTime, default=lambda: datetime.now(timezone.utc))
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=lambda: datetime.now(UTC))
 
-    tenant: Mapped["Tenant"] = relationship()
+    tenant: Mapped[Tenant] = relationship()
 
 
 class AISystem(Base, TenantScoped):
@@ -233,7 +233,7 @@ class AISystem(Base, TenantScoped):
     name: Mapped[str] = mapped_column(String(256))
     description: Mapped[str | None] = mapped_column(Text, nullable=True)
     owner_note: Mapped[str | None] = mapped_column(Text, nullable=True)
-    created_at: Mapped[datetime] = mapped_column(DateTime, default=lambda: datetime.now(timezone.utc))
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=lambda: datetime.now(UTC))
 
 
 class Incident(Base, TenantScoped):
@@ -253,7 +253,7 @@ class Incident(Base, TenantScoped):
     description: Mapped[str] = mapped_column(Text)
     detected_at: Mapped[date] = mapped_column(Date)
     reported_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
-    created_at: Mapped[datetime] = mapped_column(DateTime, default=lambda: datetime.now(timezone.utc))
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=lambda: datetime.now(UTC))
 
 
 class AssessmentRecord(Base, TenantScoped):
@@ -269,7 +269,7 @@ class AssessmentRecord(Base, TenantScoped):
 
     id: Mapped[str] = mapped_column(String(36), primary_key=True, default=_uuid)
     ai_system_id: Mapped[str | None] = mapped_column(ForeignKey("ai_systems.id"), nullable=True)
-    created_at: Mapped[datetime] = mapped_column(DateTime, default=lambda: datetime.now(timezone.utc))
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=lambda: datetime.now(UTC))
     as_of: Mapped[date] = mapped_column(Date)
     legal_knowledge_source_key: Mapped[str] = mapped_column(String(128))
     facts_json: Mapped[str] = mapped_column(Text)

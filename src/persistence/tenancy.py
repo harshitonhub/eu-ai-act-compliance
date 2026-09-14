@@ -37,7 +37,7 @@ what lets the public /ai-risk-check endpoint run unauthenticated.
 from __future__ import annotations
 
 from contextlib import contextmanager
-from typing import Iterator
+from collections.abc import Iterator
 
 from sqlalchemy import String, Table, event
 from sqlalchemy.orm import Mapped, Session, mapped_column, with_loader_criteria
