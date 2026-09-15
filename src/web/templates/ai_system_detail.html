@@ -17,7 +17,7 @@
 
 <h3>Assessment history ({{ assessments|length }})</h3>
 {% if assessments %}
-{{ t.assessment_table(assessments) }}
+{{ t.assessment_table(assessments, user_emails) }}
 {% else %}
 {{ e.empty_state("No assessments yet", "Re-run the assessment for this system and it will show up here.") }}
 {% endif %}
@@ -28,7 +28,7 @@ detected — not the report date.</p>
 
 {% if incidents %}
 <table>
-  <tr><th>Detected</th><th>Category</th><th>Description</th><th>Deadline</th><th>Status</th><th></th></tr>
+  <tr><th>Detected</th><th>Category</th><th>Description</th><th>Deadline</th><th>Status</th><th>Logged by</th><th></th></tr>
   {% for i in incidents %}
   <tr>
     <td>{{ i.detected_at }}</td>
@@ -44,12 +44,14 @@ detected — not the report date.</p>
     <td>
       {% if i.reported_at %}
       <span class="status-COMPLIANT">Reported</span>
+      <span class="explanation">by {{ user_emails.get(i.resolved_by_user_id, "—") }}</span>
       {% elif i.is_overdue %}
       <span class="status-NON_COMPLIANT">Overdue</span>
       {% else %}
       <span class="status-PARTIALLY_COMPLIANT">Not yet reported</span>
       {% endif %}
     </td>
+    <td>{{ user_emails.get(i.created_by_user_id, "—") }}</td>
     <td>
       {% if not i.reported_at %}
       <form method="post" action="/incidents/{{ i.id }}/mark-reported">

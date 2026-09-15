@@ -59,6 +59,8 @@ class IncidentSummary:
     citation_text: str
     reported_at: datetime | None
     is_overdue: bool
+    created_by_user_id: str | None
+    resolved_by_user_id: str | None
 
 
 def _to_summary(session: Session, incident: Incident, *, today: date) -> IncidentSummary:
@@ -79,25 +81,38 @@ def _to_summary(session: Session, incident: Incident, *, today: date) -> Inciden
         citation_text=find_provision_text_by_citation(session, "Article 73") or "Full text unavailable.",
         reported_at=incident.reported_at,
         is_overdue=incident.reported_at is None and deadline < today,
+        created_by_user_id=incident.created_by_user_id,
+        resolved_by_user_id=incident.resolved_by_user_id,
     )
 
 
 def create_incident(
-    session: Session, *, ai_system_id: str, severity: IncidentSeverity, description: str, detected_at: date
+    session: Session,
+    *,
+    ai_system_id: str,
+    severity: IncidentSeverity,
+    description: str,
+    detected_at: date,
+    created_by_user_id: str | None = None,
 ) -> Incident:
     incident = Incident(
-        ai_system_id=ai_system_id, severity=severity, description=description, detected_at=detected_at
+        ai_system_id=ai_system_id,
+        severity=severity,
+        description=description,
+        detected_at=detected_at,
+        created_by_user_id=created_by_user_id,
     )
     session.add(incident)
     session.commit()
     return incident
 
 
-def mark_reported(session: Session, incident_id: str) -> Incident | None:
+def mark_reported(session: Session, incident_id: str, *, resolved_by_user_id: str | None = None) -> Incident | None:
     incident = session.get(Incident, incident_id)
     if incident is None:
         return None
     incident.reported_at = datetime.now(UTC)
+    incident.resolved_by_user_id = resolved_by_user_id
     session.commit()
     return incident
 

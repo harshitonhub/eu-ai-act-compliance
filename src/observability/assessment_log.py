@@ -1,10 +1,13 @@
 """Persist and reconstruct assessments, per the mandate's "Observability and
 reproducibility" list: assessment ID, timestamp, legal knowledge version, retrieved/
 computed facts, classification, obligations, evidence, review, token usage, latency,
-and errors must all be recoverable for a past assessment.
+and errors must all be recoverable for a past assessment. `created_by_user_id` closes
+what was otherwise a real gap in a compliance-audit tool: without it, nothing in the
+system could answer "who ran this assessment" -- see docs/production-audit.md, finding
+H2. This module only carries the raw id; resolving it to a display name is the caller's
+job (same pattern as `ai_system_id`), so this stays decoupled from user/auth lookups.
 
-Explicitly not covered here (documented, not silently dropped): tenant/context is a
-column (`tenant_id`) but unused -- single-tenant so far; model/prompt/retrieval
+Explicitly not covered here (documented, not silently dropped): model/prompt/retrieval
 *version* strings are captured per LLM call via LLMCallRecord.prompt_version, but there
 is no separate global "retrieval configuration" version yet since retrieval has had only
 one implementation (keyword-overlap ranking) since Phase 3.
@@ -48,6 +51,7 @@ class AssessmentSummary:
     requires_human_review: bool
     error: str | None
     ai_system_id: str | None = None
+    created_by_user_id: str | None = None
 
 
 @dataclass(frozen=True)
@@ -57,6 +61,7 @@ class ReconstructedAssessment:
     as_of: date
     legal_knowledge_source_key: str
     ai_system_id: str | None
+    created_by_user_id: str | None
     facts: ExtractedFacts
     classification: ClassificationResult
     obligations: list[Obligation]
@@ -84,10 +89,12 @@ def record_assessment(
     llm_calls: list[LLMCallRecord],
     error: str | None = None,
     ai_system_id: str | None = None,
+    created_by_user_id: str | None = None,
 ) -> str:
     """Persist a completed assessment. Returns the assessment_id."""
     record = AssessmentRecord(
         ai_system_id=ai_system_id,
+        created_by_user_id=created_by_user_id,
         as_of=as_of,
         legal_knowledge_source_key=legal_knowledge_source_key,
         facts_json=facts.model_dump_json(),
@@ -118,6 +125,7 @@ def reconstruct_assessment(session: Session, assessment_id: str) -> Reconstructe
         as_of=record.as_of,
         legal_knowledge_source_key=record.legal_knowledge_source_key,
         ai_system_id=record.ai_system_id,
+        created_by_user_id=record.created_by_user_id,
         facts=ExtractedFacts.model_validate_json(record.facts_json),
         classification=ClassificationResult.model_validate_json(record.classification_json),
         obligations=[obligation_from_dict(d) for d in json.loads(record.obligations_json)],
@@ -156,6 +164,7 @@ def list_recent_assessments(
             requires_human_review=bool(json.loads(record.review_flags_json)),
             error=record.error,
             ai_system_id=record.ai_system_id,
+            created_by_user_id=record.created_by_user_id,
         )
         for record in records
     ]

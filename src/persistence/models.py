@@ -254,6 +254,13 @@ class Incident(Base, TenantScoped):
     detected_at: Mapped[date] = mapped_column(Date)
     reported_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=lambda: datetime.now(UTC))
+    # Nullable: historical rows predate this column, and nothing should ever synthesize
+    # an answer to "who did this" for a row that genuinely doesn't know. Two distinct
+    # actors because logging an incident and marking it reported are two distinct actions
+    # that don't have to be the same person -- e.g. an engineer logs it, compliance
+    # confirms the regulator was actually notified.
+    created_by_user_id: Mapped[str | None] = mapped_column(ForeignKey("users.id"), nullable=True)
+    resolved_by_user_id: Mapped[str | None] = mapped_column(ForeignKey("users.id"), nullable=True)
 
 
 class AssessmentRecord(Base, TenantScoped):
@@ -269,6 +276,8 @@ class AssessmentRecord(Base, TenantScoped):
 
     id: Mapped[str] = mapped_column(String(36), primary_key=True, default=_uuid)
     ai_system_id: Mapped[str | None] = mapped_column(ForeignKey("ai_systems.id"), nullable=True)
+    # Nullable for the same reason as Incident's: historical rows predate this column.
+    created_by_user_id: Mapped[str | None] = mapped_column(ForeignKey("users.id"), nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=lambda: datetime.now(UTC))
     as_of: Mapped[date] = mapped_column(Date)
     legal_knowledge_source_key: Mapped[str] = mapped_column(String(128))

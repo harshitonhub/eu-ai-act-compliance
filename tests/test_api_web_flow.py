@@ -731,3 +731,59 @@ def test_mark_unknown_incident_reported_returns_404(web_client):
     response = client.post("/incidents/does-not-exist/mark-reported")
 
     assert response.status_code == 404
+
+
+def test_actor_email_appears_on_every_surface_after_report_and_incident(web_client):
+    """docs/production-audit.md finding H2: no record said which user performed an
+    action. This confirms the logged-in user's email actually reaches every page that
+    displays attribution, not just the DB columns behind them."""
+    client, holder, _engine = web_client
+
+    holder.responses = list(HIGH_RISK_CLASSIFICATION_RESPONSES)
+    assess_response = client.post(
+        "/assess",
+        data={
+            "ai_system_name": "Resume Screener",
+            "system_description": "An AI tool that screens and ranks job applicant resumes for an employer.",
+            "intended_purpose": "Recruitment and candidate evaluation for employers.",
+            "actor_role": "deployer",
+            "sector": "",
+            "as_of": "2026-09-09",
+        },
+    )
+    holder.responses = []
+    report_response = client.post(
+        "/report",
+        data={
+            "facts_json": _extract_hidden_value("facts_json", assess_response.text),
+            "classification_json": _extract_hidden_value("classification_json", assess_response.text),
+            "classification_llm_calls_json": _extract_hidden_value(
+                "classification_llm_calls_json", assess_response.text
+            ),
+            "as_of": _extract_hidden_value("as_of", assess_response.text),
+            "ai_system_name": "Resume Screener",
+        },
+    )
+    assert "user@test.example" in report_response.text  # report.html
+
+    assessment_id = _extract_assessment_id(report_response.text)
+    assert "user@test.example" in client.get(f"/assessments/{assessment_id}/impact-assessment").text
+    assert "user@test.example" in client.get("/history").text
+
+    history_html = client.get("/history").text
+    system_id = re.search(r'/systems/([\w-]+)', history_html).group(1)
+
+    incident_response = client.post(
+        f"/systems/{system_id}/incidents",
+        data={
+            "severity": "critical_infrastructure_disruption",
+            "description": "x",
+            "detected_at": "2026-09-01",
+        },
+        follow_redirects=True,
+    )
+    assert incident_response.text.count("user@test.example") >= 2  # assessment table + "Logged by"
+
+    incident_id = re.search(r'/incidents/([\w-]+)/mark-reported', incident_response.text).group(1)
+    resolved_response = client.post(f"/incidents/{incident_id}/mark-reported", follow_redirects=True)
+    assert "by user@test.example" in resolved_response.text  # resolved_by shown next to "Reported"

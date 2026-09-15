@@ -2,7 +2,8 @@ from datetime import date
 
 from sqlalchemy import func, select
 
-from schemas.enums import IncidentSeverity
+from schemas.enums import IncidentSeverity, UserRole
+from src.auth.users import create_user
 from src.incidents.registry import (
     create_incident,
     list_all_open_incidents,
@@ -12,6 +13,7 @@ from src.incidents.registry import (
 from src.legal.ingest import ingest_seed
 from src.persistence.models import Incident
 from src.systems.registry import get_or_create_ai_system
+from tests.conftest import PRIMARY_TENANT_ID
 
 
 def test_create_incident_persists_row(session):
@@ -160,6 +162,53 @@ def test_unreported_incidents_sort_before_reported_by_soonest_deadline(session):
     summaries = list_incidents_for_system(session, system.id, today=date(2026, 9, 5))
 
     assert [s.id for s in summaries] == [later_unreported.id, reported.id]
+
+
+def test_created_by_and_resolved_by_round_trip(session):
+    ingest_seed(session)
+    system = get_or_create_ai_system(session, "Resume Screener")
+    logger = create_user(
+        session, tenant_id=PRIMARY_TENANT_ID, email="logger@example.com",
+        password="correct-horse-1", role=UserRole.MEMBER,
+    )
+    reporter = create_user(
+        session, tenant_id=PRIMARY_TENANT_ID, email="reporter@example.com",
+        password="correct-horse-2", role=UserRole.MEMBER,
+    )
+
+    incident = create_incident(
+        session,
+        ai_system_id=system.id,
+        severity=IncidentSeverity.FUNDAMENTAL_RIGHTS_INFRINGEMENT,
+        description="x",
+        detected_at=date(2026, 9, 1),
+        created_by_user_id=logger.id,
+    )
+    mark_reported(session, incident.id, resolved_by_user_id=reporter.id)
+
+    summaries = list_incidents_for_system(session, system.id)
+
+    assert summaries[0].created_by_user_id == logger.id
+    assert summaries[0].resolved_by_user_id == reporter.id
+
+
+def test_created_by_and_resolved_by_default_to_none(session):
+    ingest_seed(session)
+    system = get_or_create_ai_system(session, "Resume Screener")
+
+    incident = create_incident(
+        session,
+        ai_system_id=system.id,
+        severity=IncidentSeverity.FUNDAMENTAL_RIGHTS_INFRINGEMENT,
+        description="x",
+        detected_at=date(2026, 9, 1),
+    )
+    mark_reported(session, incident.id)
+
+    summaries = list_incidents_for_system(session, system.id)
+
+    assert summaries[0].created_by_user_id is None
+    assert summaries[0].resolved_by_user_id is None
 
 
 def test_list_all_open_incidents_excludes_reported_and_sorts_by_deadline(session):

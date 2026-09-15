@@ -1,7 +1,8 @@
 # Production Readiness Audit
 
 Self-audit against `.claude/skills/production-audit`, run 2026-09-14 against the state
-at commit `5bcf8c0` (post multi-tenancy/RBAC), plus the fixes recorded below.
+at commit `5bcf8c0` (post multi-tenancy/RBAC), plus the fixes recorded below. Updated
+2026-09-15 after closing H2's domain-attribution gap (see F4).
 
 Findings are recorded as **area → severity → evidence → risk → recommendation → next
 action**. Severity is about consequence if the finding is left alone, not about how hard
@@ -10,8 +11,8 @@ it is to fix.
 A self-audit has an obvious conflict of interest: the person who built it is deciding
 what counts as a problem. It is published anyway, with the unflattering findings kept in,
 because the alternative — asserting production-readiness with no findings at all — is
-less credible, not more. **H2, H3, and M4 in particular are gaps a reviewer would
-otherwise find first.**
+less credible, not more. **H3 and M4 in particular are gaps a reviewer would otherwise
+find first.**
 
 ---
 
@@ -19,11 +20,12 @@ otherwise find first.**
 
 **CONDITIONAL_PASS.**
 
-Suitable for **internal single-organisation deployment** once H1 and H2 are closed.
+Suitable for **internal single-organisation deployment** once H1 is closed.
 **Not** suitable for selling as multi-customer compliance software until the High and
-Medium findings are closed — chiefly the absence of actor attribution (H2), which is
-disqualifying for an audit tool, and the unaddressed legal-liability posture (H3), which
-is not an engineering problem at all.
+Medium findings are closed — chiefly the unaddressed legal-liability posture (H3), which
+is not an engineering problem at all, and the missing security-event audit trail (M7),
+which is a narrower gap than H2 was but still real: domain actions are now attributable
+(see F4), authentication/authorization events still are not.
 
 The core pipeline, isolation model, and legal-provenance chain are sound. What is missing
 is mostly operational and organisational, not architectural — no finding below requires
@@ -31,10 +33,10 @@ redesigning anything already built.
 
 | Severity | Count | Blocks internal use? | Blocks commercial use? |
 |---|---|---|---|
-| High | 3 | H1, H2 | all |
-| Medium | 5 | no | yes |
+| High | 2 | H1 | all |
+| Medium | 6 | no | yes |
 | Low | 5 | no | no |
-| Fixed during audit | 3 | — | — |
+| Fixed during audit | 4 | — | — |
 
 ---
 
@@ -74,6 +76,30 @@ instead of duplicating the rule. Length-only by design, per NIST SP 800-63B's ad
 against composition rules. Covered by two new tests.
 **Owner:** closed.
 
+### F4 · Data governance / Observability · was High (H2)
+**Evidence:** No table recorded *which user* performed any action. `AssessmentRecord` had
+`tenant_id` and `ai_system_id` but no `created_by_user_id`; `Incident` likewise, plus no
+`resolved_by_user_id` to say who marked it reported. Confirmed by grep across
+`src/persistence/models.py`.
+**Risk:** This was an audit and compliance tool whose own records could not answer "who
+did this?" — disqualifying, since it undercut the RBAC work (roles constrain what can be
+done, but nothing recorded who did it).
+**Fix applied:** Added `created_by_user_id` (FK to `users`, nullable — historical rows
+predate the column and nothing should synthesize an answer for them) to
+`AssessmentRecord`; `created_by_user_id` and `resolved_by_user_id` to `Incident`. Threaded
+through `src/observability/assessment_log.py` and `src/incidents/registry.py` as raw ids
+(resolution to a display email is the router's job, keeping those modules decoupled from
+auth), captured from the authenticated user on every write route, and rendered in
+`report.html`, `impact_assessment.html`, `history.html`, and `ai_system_detail.html`.
+Migration `807e76e09ecc` uses SQLite batch mode (plain `ALTER ... ADD CONSTRAINT` isn't
+supported); upgrade/downgrade round-trip verified by hand. 7 new tests covering round-trip
+persistence and end-to-end HTML rendering; also verified live against `scripts/demo.py`
+via Playwright — every surface shows the acting user's email after a real login.
+**Scope note:** This closes the "who performed this domain action" half of H2. The other
+half — a dedicated append-only audit log for security events (login, failed login, role
+change) independent of the domain tables — is not done; tracked as [M7](#m7).
+**Owner:** closed.
+
 ---
 
 ## High
@@ -88,20 +114,6 @@ compliance failure — the customer can no longer show what they assessed or whe
 no code change). Automated backups with a *tested* restore, not just a configured one.
 **Next action:** Document the Postgres + backup path in `README.md` before any non-throwaway
 deployment.
-
-### H2 · Data governance / Observability · High
-**Evidence:** No table records *which user* performed any action. `AssessmentRecord` has
-`tenant_id` and `ai_system_id` but no `created_by_user_id`; `Incident` likewise. Confirmed
-by grep across `src/persistence/models.py`.
-**Risk:** **The most serious finding here.** This is an audit and compliance tool whose
-own records cannot answer "who did this?". A customer cannot demonstrate segregation of
-duties, cannot investigate an internal incident, and cannot satisfy an auditor asking who
-signed off on a classification. It also undercuts the RBAC work: roles constrain what can
-be done, but nothing records who did it.
-**Recommendation:** Add `created_by_user_id` (FK to `users`) to `AssessmentRecord` and
-`Incident`, and a separate append-only `AuditEvent` table for security-relevant events
-(login, failed login, logout, role change, incident state change).
-**Next action:** Highest-value remaining work in the repo. ~half a day.
 
 ### H3 · Legal knowledge / Governance · High
 **Evidence:** `Requirement.summary` values are engineer-authored restatements
@@ -164,11 +176,26 @@ tracking (Sentry or equivalent) and uptime monitoring.
 **Evidence:** No application logging anywhere in `src/` — no `logging` import, no logger.
 `AssessmentRecord` persists rich per-assessment traces, but there is no operational log of
 requests, auth outcomes, or errors.
-**Risk:** Production issues are undiagnosable after the fact. Combined with H2, a security
+**Risk:** Production issues are undiagnosable after the fact. Combined with M7, a security
 incident would leave almost nothing to investigate.
 **Recommendation:** Structured JSON logging with a request id; never log evidence text,
 credentials, or session cookies.
-**Next action:** Pair with H2 — same sitting.
+**Next action:** Pair with M7 — same sitting.
+
+### M7 · Observability / Security · Medium
+**Evidence:** No append-only security-event log. Login, failed login, logout, and role
+change (`src/auth/sessions.py`, `src/auth/users.py`) are not recorded anywhere — the
+domain-attribution gap this replaces ([F4](#f4-data-governance--observability--was-high-h2))
+covers *what a user did in the product*, not *who tried to authenticate or was granted a
+new role*.
+**Risk:** A brute-force attempt, a suspicious login pattern, or a privilege escalation
+leaves no record to investigate after the fact — the same blind spot H2 used to describe,
+narrowed now to the auth boundary specifically.
+**Recommendation:** A dedicated append-only `AuditEvent` table (actor id, event type,
+timestamp, source IP) written on login success/failure, logout, and role change — separate
+from `AssessmentRecord`/`Incident` so it survives even if domain rows are deleted or
+redacted.
+**Next action:** Natural pairing with M6 — same sitting.
 
 ---
 
@@ -234,11 +261,12 @@ retrieval has had one implementation.
 
 ## If only three things get done
 
-1. **H2** — actor attribution. An audit tool that cannot say who did something is
-   incomplete in its own problem domain.
+1. **H1** — a real database and a tested backup/restore path, since SQLite-with-no-backup
+   is one deleted file from unrecoverable data loss.
 2. **M4** — golden cases for `POSSIBLY`, so the central claim is tested rather than
    asserted.
-3. **M6 + M5** — application logging and a health check that actually checks something;
-   together they make a deployed instance diagnosable.
+3. **M7 + M6 + M5** — a security-event audit log, application logging, and a health check
+   that actually checks something; together they make a deployed instance diagnosable and
+   investigable.
 
-F1, F2, and F3 were closed during the audit itself.
+F1, F2, F3, and F4 were closed during the audit itself.

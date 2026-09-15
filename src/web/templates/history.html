@@ -19,12 +19,12 @@
   <span class="hint">({{ system.assessment_count }} assessment{{ "s" if system.assessment_count != 1 else "" }})</span>
   {% if system.id in outdated_system_ids %}<span class="status-PARTIALLY_COMPLIANT">Update available</span>{% endif %}
 </h3>
-{{ t.assessment_table(by_system_id[system.id]) }}
+{{ t.assessment_table(by_system_id[system.id], user_emails) }}
 {% endfor %}
 
 {% if ungrouped %}
 <h3>Ungrouped</h3>
 <p class="hint">One-off checks not assigned to a named AI system.</p>
-{{ t.assessment_table(ungrouped) }}
+{{ t.assessment_table(ungrouped, user_emails) }}
 {% endif %}
 {% endblock %}

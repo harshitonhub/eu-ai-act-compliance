@@ -34,7 +34,9 @@ from src.obligations.mapping import Obligation, map_obligations
 from src.observability.assessment_log import list_recent_assessments, record_assessment, reconstruct_assessment
 from src.observability.instrumented_client import InstrumentedLLMClient
 from src.observability.serialization import llm_call_record_from_dict, llm_call_record_to_dict
+from src.auth.users import get_user
 from src.persistence.db import get_session
+from src.persistence.models import User
 from src.reporting.report import build_report
 from src.review.triggers import determine_review_flags
 from src.systems.registry import get_ai_system, get_or_create_ai_system, list_ai_systems
@@ -62,6 +64,20 @@ def _citation_texts_for(session: Session, classification: ClassificationResult) 
         if result is not None:
             texts[key] = result.provision_text
     return texts
+
+
+def _user_emails_for(session: Session, user_ids: set[str | None]) -> dict[str, str]:
+    """user_id -> email, for every non-None id in `user_ids`. Templates look up display
+    names through this rather than the raw id (see assessment_log.py's module docstring
+    on why AssessmentSummary/IncidentSummary only carry the id, not a resolved name)."""
+    emails = {}
+    for user_id in user_ids:
+        if user_id is None:
+            continue
+        user = get_user(session, user_id)
+        if user is not None:
+            emails[user_id] = user.email
+    return emails
 
 
 def _crosswalks_for(session: Session, obligations: list[Obligation]) -> dict[str, list]:
@@ -150,12 +166,13 @@ def submit_assessment(
     )
 
 
-@router.post("/report", response_class=HTMLResponse, dependencies=[Depends(require_writer)])
+@router.post("/report", response_class=HTMLResponse)
 async def generate_report(
     request: Request,
     session: Session = Depends(get_session),
     llm_client: LLMClient = Depends(get_llm_client),
     _rate_limit: None = Depends(rate_limit),
+    current_user: User = Depends(require_writer),
 ) -> HTMLResponse:
     form = await request.form()
 
@@ -212,6 +229,7 @@ async def generate_report(
             llm_calls=classification_llm_calls + instrumented_client.call_records,
             error=error,
             ai_system_id=ai_system_id,
+            created_by_user_id=current_user.id,
         )
         raise
 
@@ -227,6 +245,7 @@ async def generate_report(
         review_flags=review_flags,
         llm_calls=classification_llm_calls + instrumented_client.call_records,
         ai_system_id=ai_system_id,
+        created_by_user_id=current_user.id,
     )
 
     report = build_report(facts, as_of_date, classification, obligations, evidence_assessments, gaps, review_flags)
@@ -240,6 +259,8 @@ async def generate_report(
             "file_errors": file_errors,
             "citation_texts": _citation_texts_for(session, classification),
             "crosswalks": _crosswalks_for(session, obligations),
+            "created_by_user_id": current_user.id,
+            "user_emails": _user_emails_for(session, {current_user.id}),
         },
     )
 
@@ -259,6 +280,7 @@ def show_history(request: Request, session: Session = Depends(get_session)) -> H
             "by_system_id": by_system_id,
             "ungrouped": ungrouped,
             "outdated_system_ids": outdated_system_ids,
+            "user_emails": _user_emails_for(session, {a.created_by_user_id for a in all_assessments}),
         },
     )
 
@@ -278,7 +300,11 @@ def show_ai_system(
     if system is None:
         raise HTTPException(status_code=404, detail="AI system not found.")
     assessments = list_recent_assessments(session, ai_system_id=ai_system_id)
+    incidents = list_incidents_for_system(session, ai_system_id)
     update_alert = check_ai_system_for_updates(session, ai_system_id)
+    user_ids = {a.created_by_user_id for a in assessments}
+    user_ids.update(i.created_by_user_id for i in incidents)
+    user_ids.update(i.resolved_by_user_id for i in incidents)
     return templates.TemplateResponse(
         request,
         "ai_system_detail.html",
@@ -286,20 +312,22 @@ def show_ai_system(
             "system": system,
             "assessments": assessments,
             "update_alert": update_alert,
-            "incidents": list_incidents_for_system(session, ai_system_id),
+            "incidents": incidents,
             "severity_options": SEVERITY_LABELS,
             "today": date.today().isoformat(),
+            "user_emails": _user_emails_for(session, user_ids),
         },
     )
 
 
-@router.post("/systems/{ai_system_id}/incidents", response_class=HTMLResponse, dependencies=[Depends(require_writer)])
+@router.post("/systems/{ai_system_id}/incidents", response_class=HTMLResponse)
 def report_incident(
     ai_system_id: str,
     severity: str = Form(...),
     description: str = Form(...),
     detected_at: str = Form(...),
     session: Session = Depends(get_session),
+    current_user: User = Depends(require_writer),
 ) -> HTMLResponse:
     if get_ai_system(session, ai_system_id) is None:
         raise HTTPException(status_code=404, detail="AI system not found.")
@@ -309,15 +337,19 @@ def report_incident(
         severity=IncidentSeverity(severity),
         description=description,
         detected_at=date.fromisoformat(detected_at),
+        created_by_user_id=current_user.id,
     )
     return RedirectResponse(f"/systems/{ai_system_id}", status_code=303)
 
 
-@router.post("/incidents/{incident_id}/mark-reported", response_class=HTMLResponse, dependencies=[Depends(require_writer)])
+@router.post("/incidents/{incident_id}/mark-reported", response_class=HTMLResponse)
 def mark_incident_reported(
-    incident_id: str, request: Request, session: Session = Depends(get_session)
+    incident_id: str,
+    request: Request,
+    session: Session = Depends(get_session),
+    current_user: User = Depends(require_writer),
 ) -> HTMLResponse:
-    incident = mark_reported(session, incident_id)
+    incident = mark_reported(session, incident_id, resolved_by_user_id=current_user.id)
     if incident is None:
         raise HTTPException(status_code=404, detail="Incident not found.")
     return RedirectResponse(f"/systems/{incident.ai_system_id}", status_code=303)
@@ -350,6 +382,8 @@ def show_past_assessment(
             "file_errors": [],
             "citation_texts": _citation_texts_for(session, reconstructed.classification),
             "crosswalks": _crosswalks_for(session, reconstructed.obligations),
+            "created_by_user_id": reconstructed.created_by_user_id,
+            "user_emails": _user_emails_for(session, {reconstructed.created_by_user_id}),
         },
     )
 
@@ -387,5 +421,8 @@ def show_impact_assessment(
             "ai_system_name": ai_system.name if ai_system is not None else None,
             "citation_texts": _citation_texts_for(session, reconstructed.classification),
             "crosswalks": _crosswalks_for(session, reconstructed.obligations),
+            "created_by_email": _user_emails_for(session, {reconstructed.created_by_user_id}).get(
+                reconstructed.created_by_user_id
+            ),
         },
     )

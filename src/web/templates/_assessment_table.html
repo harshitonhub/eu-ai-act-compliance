@@ -1,10 +1,11 @@
-{% macro assessment_table(assessments) %}
+{% macro assessment_table(assessments, user_emails={}) %}
 <table>
-  <tr><th>Date</th><th>System</th><th>Review</th><th></th></tr>
+  <tr><th>Date</th><th>System</th><th>Assessed by</th><th>Review</th><th></th></tr>
   {% for a in assessments %}
   <tr>
     <td>{{ a.created_at.strftime("%Y-%m-%d %H:%M") }}</td>
     <td>{{ a.system_description[:80] }}{% if a.system_description|length > 80 %}…{% endif %}</td>
+    <td>{{ user_emails.get(a.created_by_user_id, "—") }}</td>
     <td>
       {% if a.error %}
       <span class="status-NON_COMPLIANT">Failed</span>

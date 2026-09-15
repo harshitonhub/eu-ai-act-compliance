@@ -12,6 +12,7 @@
     <dt>System</dt><dd>{{ report.facts.system_description }}</dd>
     <dt>Intended purpose</dt><dd>{{ report.facts.intended_purpose }}</dd>
     <dt>Assessed as of</dt><dd>{{ report.as_of }}</dd>
+    <dt>Assessed by</dt><dd>{{ user_emails.get(created_by_user_id, "—") }}</dd>
   </dl>
 </div>
 

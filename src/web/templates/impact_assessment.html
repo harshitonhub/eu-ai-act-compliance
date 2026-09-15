@@ -17,6 +17,7 @@
     <span><strong>Assessment ID</strong></span><span><code>{{ assessment_id }}</code></span>
     <span><strong>Generated</strong></span><span>{{ created_at.strftime("%Y-%m-%d %H:%M UTC") }}</span>
     <span><strong>Assessed as of</strong></span><span>{{ report.as_of }}</span>
+    <span><strong>Assessed by</strong></span><span>{{ created_by_email or "—" }}</span>
     <span><strong>Legal basis</strong></span><span>EU AI Act (2024/1689), GDPR (2016/679)</span>
   </div>
 </div>

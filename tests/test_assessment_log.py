@@ -4,15 +4,17 @@ data alone.
 
 from datetime import date, datetime, UTC
 
+from src.auth.users import create_user
 from src.observability.assessment_log import list_recent_assessments, record_assessment, reconstruct_assessment
 from src.observability.instrumented_client import LLMCallRecord
 from src.gaps.compute import Gap
 from src.obligations.mapping import Obligation
 from schemas.classification import CategoryClassification, CitedRequirement, ClassificationResult
-from schemas.enums import ClassificationCategory, ClassificationState, EvidenceDimension, EvidenceStatus
+from schemas.enums import ClassificationCategory, ClassificationState, EvidenceDimension, EvidenceStatus, UserRole
 from schemas.evidence import DimensionAssessment, EvidenceAssessment
 from schemas.facts import ExtractedFacts
 from src.review.triggers import ReviewFlag, ReviewTrigger
+from tests.conftest import PRIMARY_TENANT_ID
 
 FACTS = ExtractedFacts(system_description="A recruitment screening tool.", intended_purpose="Screen job applicants.")
 
@@ -111,6 +113,44 @@ def test_record_and_reconstruct_round_trips_every_field(session):
     assert reconstructed.total_output_tokens == 45
     assert reconstructed.total_latency_ms == 812.3
     assert reconstructed.error is None
+
+
+def test_created_by_user_id_round_trips(session):
+    user = create_user(
+        session, tenant_id=PRIMARY_TENANT_ID, email="assessor@example.com",
+        password="correct-horse-1", role=UserRole.MEMBER,
+    )
+
+    assessment_id = record_assessment(
+        session,
+        as_of=date(2026, 9, 9),
+        legal_knowledge_source_key="eu_ai_act_2024_1689",
+        facts=FACTS,
+        classification=CLASSIFICATION,
+        obligations=[],
+        evidence_assessments=[],
+        gaps=[],
+        review_flags=[],
+        llm_calls=[],
+        created_by_user_id=user.id,
+    )
+
+    reconstructed = reconstruct_assessment(session, assessment_id)
+
+    assert reconstructed.created_by_user_id == user.id
+    assert list_recent_assessments(session)[0].created_by_user_id == user.id
+
+
+def test_created_by_user_id_defaults_to_none(session):
+    assessment_id = record_assessment(
+        session, as_of=date(2026, 9, 9), legal_knowledge_source_key="eu_ai_act_2024_1689",
+        facts=FACTS, classification=CLASSIFICATION, obligations=[], evidence_assessments=[],
+        gaps=[], review_flags=[], llm_calls=[],
+    )
+
+    reconstructed = reconstruct_assessment(session, assessment_id)
+
+    assert reconstructed.created_by_user_id is None
 
 
 def test_reconstruct_unknown_assessment_id_returns_none(session):
